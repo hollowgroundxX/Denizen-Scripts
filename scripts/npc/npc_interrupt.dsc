@@ -68,9 +68,10 @@ npc_interrupt_fishermen_events:
 		
 		# |------- player leave npc range check -------| #				
 		on player quits:
+			- wait 1s
 			- if not <player.location.find_npcs_within[5].is_empty>:
 				- foreach <player.location.find_npcs_within[5]> as:npc:
-					- if ( <player.gamemode> == 'spectator' || <player.has_effect[INVISIBILITY]> ) && ( <[npc].flag[ignored].contains[<player>]> ):
+					- if ( <[npc].flag[ignored].contains[<player>]> ):
 						- flag <[npc]> ignored:<-:<player>
 					- if ( <[npc].location.find_players_within[5]> == <[npc].flag[ignored]> && <[npc].flag[interrupted].is_truthy> ) || ( <[npc].flag[ignored].is_empty> && <[npc].location.find_players_within[5].is_empty> && <[npc].flag[interrupted].is_truthy> ):
 						- execute as_server "npc select <[npc].id>"
