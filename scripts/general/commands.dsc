@@ -10,53 +10,56 @@ developer_mode:
 	name: devmode
 	usage: /devmode {category} {action} {option1} {option2} {...}
 	aliases:
-	- dev
-	- developermode
-	- hollow
-	- hollowmode
+		- dev
+		- developermode
+		- hollow
+		- hollowmode
 	permission: script.command.developer_mode
-	permission message: '<red>Entity: <white><player.name>, <red>is not authorized to use <white>developer mode<red>.'
+	permission message: '<gray>[<aqua><bold>DevMode<gray>] <red>Entity: <white><player.name>, <red>is not authorized to use <white>developer mode<red>.'
 	script:
+		# |------- flags check -------| #
+		- if ( not <player.has_flag[debug_npc]> ):
+			- flag <player> debug_npc:false
+		
 		# |------- define arguments -------| #
 		- define category <context.args.get[1]||null>
 		- define action <context.args.get[2]||null>
 		- define options <context.args.exclude[<[category]>|<[action]>]||null>
 		
-		# |------- flags check -------| #
-		- if ( not <player.has_flag[debug_npc]> ):
-			- flag <player> debug_npc:false
+		# |------- define formats -------| #
+		- define prefix '<gray>[<aqua><bold>DevMode<gray>]'
+		- define cat_prefix '<gray>[<aqua><bold><[category].to_uppercase><gray>]'
 		
 		# |------- null check -------| #
 		- if ( <[category]> == null && <[action]> == null ) && ( <[options].is_empty> || <[options]> == null ):
-			- narrate '<red>You must specify a valid <white>category <red>to enable developer mode.'
-			- narrate '<gray>Example: /<white><context.alias><gray> {<white>category<gray>} {<white>action<gray>} {<white>option1<gray>}'
+			- narrate '<[prefix]> <red>You must specify a valid <white>category <red>to enable developer mode. <gray>Example: /<white><context.alias><gray> {<white>category<gray>} {<white>action<gray>} {<white>option1<gray>}'
 		
-		# |------- arguments check -------| #
+		# |------- run command -------| #
 		- else:
 			- choose <[category]>:
 				- case npc npcs:
 					- choose <[action]>:
 						- case null:
-							- if ( <player.flag[debug_npc]> == 'true' ):
+							- if ( <player.flag[debug_npc]> ):
 								- flag <player> debug_npc:false
-								- narrate '<white>DevMode.NPC toggled <red>off<white>.'
+								- narrate '<[prefix]> <[cat_prefix]><white>: <red>Disabled<white>'
 							- else:
 								- flag <player> debug_npc:true
-								- narrate '<white>DevMode.NPC toggled <green>on<white>.'
+								- narrate '<[prefix]> <[cat_prefix]><white>: <green>Enabled<white>'
 						- case true:
-							- if <player.flag[debug_npc]> == 'true':
-								- narrate '<white>DevMode.NPC is already <green>enabled<white>.'
+							- if ( <player.flag[debug_npc]> ):
+								- narrate '<[prefix]> <[cat_prefix]><white>: is already <green>enabled<white>.'
 							- else:
 								- flag <player> debug_npc:true
-								- narrate '<white>DevMode.NPC: <green>Enabled<white>.'
+								- narrate '<[prefix]> <[cat_prefix]><white>: <green>Enabled<white>'
 						- case false:
-							- if <player.flag[debug_npc]> == 'false':
-								- narrate '<white>DevMode.NPC is already <red>disabled<white>.'
+							- if ( not <player.flag[debug_npc]> ):
+								- narrate '<[prefix]> <[cat_prefix]><white>: is already <red>disabled<white>.'
 							- else:
 								- flag <player> debug_npc:false
-								- narrate '<white>DevMode.NPC: <red>Disabled<white>.'
+								- narrate '<[prefix]> <[cat_prefix]><white>: <red>Disabled<white>'
 				- default:
-					- narrate '<red>Category: <white><[category]> <red>is not a valid category.'
+					- narrate '<[prefix]> <red>Category: <white><[category]> <red>is not a valid category.'
 
 
 
