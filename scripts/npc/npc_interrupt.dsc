@@ -63,13 +63,13 @@ npc_interrupt_fishermen_events:
 				- foreach <player.location.find_npcs_within[5]> as:npc:
 					- if ( <player.gamemode> == 'spectator' || <player.has_effect[INVISIBILITY]> ) && ( not <[npc].flag[ignored].contains[<player>]> ):
 						- flag <[npc]> ignored:->:<player>
-						- if <player.flag[debug_npc]>:
+						- if <player.flag[debug_proximity]>:
 							- narrate "<gray>[<aqua><bold>NPC.<[npc].id><gray>] <white>Ignoring: <aqua><[npc].flag[ignored].size>"
 					- if ( <[npc].location.find_players_within[5].exclude[<player>]> == <[npc].flag[ignored]> && not <[npc].flag[interrupted]> ):
 						- execute as_server "npc select <[npc].id>" silent
 						- execute as_server "npc stopfishing" silent
 						- flag <[npc]> interrupted:true
-					- if <player.flag[debug_npc]>:
+					- if <player.flag[debug_proximity]>:
 						- narrate "<gray>[<aqua><bold>NPC.<[npc].id><gray>] <white>Interrupted: <aqua><[npc].flag[interrupted]>"
 		
 		# |------- player leave npc range check -------| #				
@@ -96,7 +96,7 @@ npc_interrupt_fishermen_events:
 							- execute as_server "npc select <[npc].id>" silent
 							- execute as_server "npc fish" silent
 							- flag <[npc]> interrupted:false
-						- if <player.flag[debug_npc]>:
+						- if <player.flag[debug_proximity]>:
 							- narrate "<gray>[<aqua><bold>NPC.<[npc].id><gray>] <white>Interrupted: <aqua><[npc].flag[interrupted]>"
 							- narrate "<gray>[<aqua><bold>NPC.<[npc].id><gray>] <white>Ignoring: <aqua><[npc].flag[ignored].size>"
 		
@@ -111,7 +111,7 @@ npc_interrupt_fishermen_events:
 						- execute as_server "npc select <[npc].id>" silent
 						- execute as_server "npc fish" silent
 						- flag <[npc]> interrupted:false
-					- if <player.flag[debug_npc]>:
+					- if <player.flag[debug_proximity]>:
 						- narrate "<gray>[<aqua><bold>NPC.<[npc].id><gray>] <white>Interrupted: <aqua><[npc].flag[interrupted]>"
 						- narrate "<gray>[<aqua><bold>NPC.<[npc].id><gray>] <white>Ignoring: <aqua><[npc].flag[ignored].size>"
 		
@@ -126,7 +126,7 @@ npc_interrupt_fishermen_events:
 						- execute as_server "npc select <[npc].id>" silent
 						- execute as_server "npc stopfishing" silent
 						- flag <[npc]> interrupted:true
-					- if <player.flag[debug_npc]>:
+					- if <player.flag[debug_proximity]>:
 						- narrate "<gray>[<aqua><bold>NPC.<[npc].id><gray>] <white>Interrupted: <aqua><[npc].flag[interrupted]>"
 						- narrate "<gray>[<aqua><bold>NPC.<[npc].id><gray>] <white>Ignoring: <aqua><[npc].flag[ignored].size>"
 		
@@ -141,7 +141,7 @@ npc_interrupt_fishermen_events:
 						- execute as_server "npc select <[npc].id>" silent
 						- execute as_server "npc stopfishing" silent
 						- flag <[npc]> interrupted:true
-					- if <player.flag[debug_npc]>:
+					- if <player.flag[debug_proximity]>:
 						- narrate "<gray>[<aqua><bold>NPC.<[npc].id><gray>] <white>Interrupted: <aqua><[npc].flag[interrupted]>"
 						- narrate "<gray>[<aqua><bold>NPC.<[npc].id><gray>] <white>Ignoring: <aqua><[npc].flag[ignored].size>"
 
@@ -164,7 +164,7 @@ npc_interrupt_fishermen:
 			- pose id:static
 			- fish <npc.cursor_on>
 			- lookclose <npc> true
-			- if <player.flag[debug_npc]>:
+			- if <player.flag[debug_proximity]>:
 				- narrate "<gray>[<aqua><bold>NPC.<npc.id><gray>] <white>Interrupted: <aqua><npc.flag[interrupted]>"
 		
 		# |------- interrupt fishermen npc -------| #
@@ -172,12 +172,12 @@ npc_interrupt_fishermen:
 			- if ( <player.gamemode> == 'spectator' || <player.has_effect[INVISIBILITY]> ):
 				- if ( not <npc.flag[ignored].contains[<player>]> ):
 					- flag <npc> ignored:->:<player>
-				- if <player.flag[debug_npc]>:
+				- if <player.flag[debug_proximity]>:
 					- narrate "<gray>[<aqua><bold>NPC.<npc.id><gray>] <white>Ignoring: <aqua><npc.flag[ignored].size>"
 			- if ( not <npc.flag[ignored].contains[<player>]> && not <npc.flag[interrupted]> ):
 				- fish stop
 				- flag <npc> interrupted:true
-			- if <player.flag[debug_npc]>:
+			- if <player.flag[debug_proximity]>:
 				- narrate "<gray>[<aqua><bold>NPC.<npc.id><gray>] <white>Interrupted: <aqua><npc.flag[interrupted]>"
 		
 		# |------- resume fishermen npc -------| #
@@ -188,9 +188,9 @@ npc_interrupt_fishermen:
 				- flag <npc> interrupted:false
 			- if <npc.flag[ignored].contains[<player>]>:
 				- flag <npc> ignored:<-:<player>
-				- if <player.flag[debug_npc]>:
+				- if <player.flag[debug_proximity]>:
 					- narrate "<gray>[<aqua><bold>NPC.<npc.id><gray>] <white>Ignoring: <aqua><npc.flag[ignored].size>"
-			- if <player.flag[debug_npc]>:
+			- if <player.flag[debug_proximity]>:
 				- narrate "<gray>[<aqua><bold>NPC.<npc.id><gray>] <white>Interrupted: <aqua><npc.flag[interrupted]>"
 
 
