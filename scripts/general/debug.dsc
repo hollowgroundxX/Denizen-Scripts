@@ -112,12 +112,10 @@ flag_editor:
 		# |------- define arguments -------| #
 		######################################
 		- if ( li@player|players|npc|npcs contains <context.args.get[1]> ):
-			- narrate "if is being run"
 			- define entity <context.args.get[1]||null>
 			- define context <context.args.get[2]||null>
 			- define options <context.args.exclude[<[entity]>|<[context]>]||null>
 		- else:
-			- narrate "else is being run"
 			- define entity player
 			- define context <context.args.get[1]||null>
 			- define options <context.args.exclude[<[context]>]||null>
