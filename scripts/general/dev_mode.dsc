@@ -25,7 +25,8 @@ developer_mode:
 	type: command
 	debug: true
 	name: developer
-	usage: /devmode {category} {action} {option1} {option2} {...}
+	description: Flag editor command.
+	usage: /developer (category) (action) (option1) (option2) (...)
 	aliases:
 		- dev
 		- devmode
@@ -48,7 +49,7 @@ developer_mode:
 		#################################
 		# |------- define data -------| #
 		#################################
-		- define prefix '<&7>[<&d><&l><script[developer_mode_data].data_key[prefix]><&7>]'
+		- define prefix <&7>[<&d><&l><script[developer_mode_data].data_key[prefix]><&7>]
 		- define categories <script[developer_mode_data].data_key[categories]>
 		
 		################################
@@ -68,13 +69,13 @@ developer_mode:
 							- flag <player> flag_editor:false
 							- flag <player> public_flags:->:flag_editor
 						- define flag flag_editor
-						- define cat_prefix '<&7>[<&b>FlagEditor<&7>]'
+						- define cat_prefix <&7>[<&b>FlagEditor<&7>]
 					- case prox proximity:
 						- if ( not <player.has_flag[flag_proximity]> ) && ( not <player.flag[public_flags].contains[flag_proximity]> ):
 							- flag <player> flag_proximity:false
 							- flag <player> public_flags:->:flag_proximity
 						- define flag flag_proximity
-						- define cat_prefix '<&7>[<&b>Proximity<&7>]'
+						- define cat_prefix <&7>[<&b>Proximity<&7>]
 			- else:
 				 - narrate '<[prefix]> <&f><[category]> <&c>is not valid category.'
 			

@@ -1,8 +1,8 @@
 
 
 # | ---------------------------------------------- NPC INTERRUPT | ASSIGNMENTS ---------------------------------------------- | #
-			
-				
+
+
 npc_interrupt_fishermen:
 	###########################################
 	# |------- assignment properties -------| #
@@ -16,7 +16,7 @@ npc_interrupt_fishermen:
 		on assignment:
 			- trigger name:proximity state:true radius:5
 			- flag <npc> interrupted:false
-			- flag <npc> ignored:!|:li@
+			- flag <npc> ignored:!|:<list[]>
 			- lookclose <npc> false
 			- pose id:static
 			- fish <npc.cursor_on>
@@ -28,7 +28,7 @@ npc_interrupt_fishermen:
 		# |------- interrupt fishermen -------| #
 		#########################################
 		on enter proximity:
-			- if ( <player.gamemode> == 'spectator' || <player.has_effect[INVISIBILITY]> ):
+			- if ( <player.gamemode.equals[spectator]> || <player.has_effect[INVISIBILITY]> ):
 				- if ( not <npc.flag[ignored].contains[<player>]> ):
 					- flag <npc> ignored:->:<player>
 				- if <player.flag[flag_proximity]>:
@@ -65,7 +65,7 @@ npc_interrupt_guard:
 	###########################################
     type: assignment
     debug: false
-    actions:	
+    actions:
 		#############################################
 		# |------- set triggers & defaults -------| #
 		#############################################
@@ -91,7 +91,7 @@ npc_interrupt_fishermen_events:
 			- wait 1s
 			- if not <player.location.find_npcs_within[5].is_empty>:
 				- foreach <player.location.find_npcs_within[5]> as:npc:
-					- if ( <player.gamemode> == 'spectator' || <player.has_effect[INVISIBILITY]> ) && ( not <[npc].flag[ignored].contains[<player>]> ):
+					- if ( <player.gamemode.equals[spectator]> || <player.has_effect[INVISIBILITY]> ) && ( not <[npc].flag[ignored].contains[<player>]> ):
 						- flag <[npc]> ignored:->:<player>
 						- if <player.flag[flag_proximity]>:
 							- narrate "<gray>[<aqua><bold>NPC.<[npc].id><gray>] <white>Ignoring: <aqua><[npc].flag[ignored].size>"
@@ -118,7 +118,7 @@ npc_interrupt_fishermen_events:
 		
 		#########################################################
 		# |------- player invisibility npc range check -------| #
-		#########################################################	
+		#########################################################
 		after player consumes potion:
 			- if <player.has_effect[INVISIBILITY]>:
 				- wait 1s
@@ -153,7 +153,7 @@ npc_interrupt_fishermen_events:
 		
 		#####################################################
 		# |------- player creative npc range check -------| #
-		#####################################################	
+		#####################################################
 		after player changes gamemode to creative:
 			- wait 1s
 			- if not <player.location.find_npcs_within[5].is_empty>:
