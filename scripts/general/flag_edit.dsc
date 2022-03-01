@@ -67,12 +67,20 @@ flag_editor_data_events:
 		after player joins:
 			- if not ( <player.has_flag[public_flags]> ):
 				- flag <player> public_flags:!|:<list[]>
+				- if ( not <player.has_flag[private_flags]> ):
+					- flag <player> private_flags:!|:<list[public_flags|private_flags|fragile_flags]>
+				- else:
+					- flag <player> private_flags:->:public_flags
 			- if not ( <player.has_flag[private_flags]> ):
 				- flag <player> private_flags:!|:<list[public_flags|private_flags|fragile_flags]>
 			- if not ( <player.has_flag[fragile_flags]> ):
 				- flag <player> fragile_flags:!|:<list[]>
+				- if ( not <player.has_flag[private_flags]> ):
+					- flag <player> private_flags:!|:<list[public_flags|private_flags|fragile_flags]>
+				- else:
+					- flag <player> private_flags:->:fragile_flags
 	
-	
+
 	
 # | ---------------------------------------------- FLAG EDITOR | DATA --------------------------------------------- | #
 
@@ -89,10 +97,15 @@ flag_editor_data:
 		- delete
 		- add
 		- remove
+		- rename
 		- update
 		- edit
 		- reset
 		- sort
+	target_aliases:
+		- me
+		- myself
+		- server
 
 
 
@@ -124,84 +137,64 @@ flag_editor_command:
 		#################################
 		- define prefix <&7>[<&d><&l><script[flag_editor_data].data_key[prefix]><&7>]
 		- define flag_operations <script[flag_editor_data].data_key[operations]>
+		- define target_aliases <script[flag_editor_data].data_key[target_aliases]>
 		- define elevated <player.has_permission[script.command.elevated].global>
 		- define first <context.args.get[1]||null>
 		
-		##################################
-		# |------- source check -------| #
-		##################################
+		######################################
+		# |------- define arguments -------| #
+		######################################
 		- if ( <context.source_type.equals[player]> ):
 			- if ( <player.flag[flag_editor].if_null[false]> ):
-				
-				#######################################
-				# |------- define containers -------| #
-				#######################################
-				- if ( <[first].equals[server]> ):
-					- define public_flags <server.flag[public_flags]||null>
-					- define private_flags <server.flag[private_flags]||null>
-					- define fragile_flags <server.flag[fragile_flags]||null>
-				- else if ( <[first].equals[me]> ) || ( <[first].equals[myself]> ):
-					- define public_flags <player.flag[public_flags]||null>
-					- define private_flags <player.flag[private_flags]||null>
-					- define fragile_flags <player.flag[fragile_flags]||null>
-				- else if ( <server.match_player[<[first]>].exists> ) || ( <server.match_offline_player[<[first]>].exists> ):
-					- define target <server.match_player[<[first]>].if_null[<server.match_offline_player[<[first]>]>]>
-					- define public_flags <[target].flag[public_flags]||null>
-					- define private_flags <[target].flag[private_flags]||null>
-					- define fragile_flags <[target].flag[fragile_flags]||null>
-				- else:
-					- define public_flags <server.flag[public_flags]||null>
-					- define private_flags <server.flag[private_flags]||null>
-					- define fragile_flags <server.flag[fragile_flags]||null>
-				
-				######################################
-				# |------- define arguments -------| #
-				######################################
-				- if ( not <[public_flags].equals[null]> ) && ( not <[private_flags].equals[null]> ) && ( not <[fragile_flags].equals[null]> ):
-					- if ( not <context.args.is_empty> ):
-						- if ( <[first].equals[server]> ) || ( <[first].equals[me]> ) || ( <[first].equals[myself]> ):
-							- if ( <[first].equals[me]> ) || ( <[first].equals[myself]> ):
-								- define target <player>
-							- else if ( <[first].equals[server]> ):
-								- define target server
-							- define context <context.args.get[2]||null>
-							- define option_1 <context.args.exclude[<[context]>|<[first]>].get[1]||null>
-							- define option_2 <context.args.exclude[<[context]>|<[first]>].get[2]||null>
-							- define option_3 <context.args.exclude[<[context]>|<[first]>].get[3]||null>
-						- else if ( <[public_flags]> contains <[first]> ) || ( <[private_flags]> contains <[first]> ) || ( <[flag_operations]> contains <[first]> ):
+				- if ( not <context.args.is_empty> ):
+					- if ( <[target_aliases].contains[<[first]>]> ):
+						- if ( <[first].equals[me]> ) || ( <[first].equals[myself]> ):
+							- define target <player>
+							- define public_flags <[target].flag[public_flags]||null>
+							- define private_flags <[target].flag[private_flags]||null>
+							- define fragile_flags <[target].flag[fragile_flags]||null>
+						- else if ( <[first].equals[server]> ):
 							- define target server
-							- define context <[first]>
-							- define option_1 <context.args.exclude[<[context]>].get[1]||null>
-							- define option_2 <context.args.exclude[<[context]>].get[2]||null>
-							- define option_3 <context.args.exclude[<[context]>].get[3]||null>
-						- else if ( <server.match_player[<[first]>].exists> || <server.match_offline_player[<[first]>].exists> ) && ( not <[public_flags].contains[<[first]>]> ) && ( not <[private_flags].contains[<[first]>]> ) && ( not <[flag_operations].contains[<[first]>]> ):
-							- define target <server.match_player[<[first]>].if_null[<server.match_offline_player[<[first]>]>]>
-							- define context <context.args.get[2]||null>
-							- define option_1 <context.args.exclude[<[target].name>|<[context]>].get[1]||null>
-							- define option_2 <context.args.exclude[<[target].name>|<[context]>].get[2]||null>
-							- define option_3 <context.args.exclude[<[target].name>|<[context]>].get[3]||null>
-						- else:
-							####################################
-							# |------- invalid target -------| #
-							####################################
-							- narrate "<[prefix]> <&c>You must specify a valid <&f>target<&c>, <&f>flag <&c>or <&f>operation<&c>."
-							- stop
+							- define public_flags <server.flag[public_flags]||null>
+							- define private_flags <server.flag[private_flags]||null>
+							- define fragile_flags <server.flag[fragile_flags]||null>
+						- define context <context.args.get[2]||null>
+						- define options <context.args.exclude[<[context]>|<[first]>]||null>
+					- else if ( <server.flag[public_flags].if_null[<list[]>]> contains <[first]> ) || ( <server.flag[private_flags].if_null[<list[]>]> contains <[first]> ) || ( <[flag_operations]> contains <[first]> ):
+						- define target server
+						- define public_flags <server.flag[public_flags]||null>
+						- define private_flags <server.flag[private_flags]||null>
+						- define fragile_flags <server.flag[fragile_flags]||null>
+						- define context <[first]>
+						- define options <context.args.exclude[<[context]>]||null>
+					- else if ( <server.match_player[<[first]>].exists> || <server.match_offline_player[<[first]>].exists> ) && ( not <server.match_player[<[first]>].if_null[<server.match_offline_player[<[first]>]>].flag[public_flags].if_null[<list[]>].contains[<[first]>]> ) && ( not <server.match_player[<[first]>].if_null[<server.match_offline_player[<[first]>]>].flag[private_flags].if_null[<list[]>].contains[<[first]>]> ) && ( not <[flag_operations].contains[<[first]>]> ):
+						- define target <server.match_player[<[first]>].if_null[<server.match_offline_player[<[first]>]>]>
+						- define public_flags <[target].flag[public_flags]||null>
+						- define private_flags <[target].flag[private_flags]||null>
+						- define fragile_flags <[target].flag[fragile_flags]||null>
+						- define context <context.args.get[2]||null>
+						- define options <context.args.exclude[<[target].name>|<[context]>]||null>
 					- else:
-						##################################
-						# |------- null context -------| #
-						##################################
+						####################################
+						# |------- invalid target -------| #
+						####################################
 						- narrate "<[prefix]> <&c>You must specify a valid <&f>target<&c>, <&f>flag <&c>or <&f>operation<&c>."
 						- stop
 				- else:
-					####################################
-					# |------- null container -------| #
-					####################################
-					- narrate "<[prefix]> <&c>The target does not have the required <&f>containers <&c>to use flag edit commands."
+					##################################
+					# |------- null context -------| #
+					##################################
+					- narrate "<[prefix]> <&c>You must specify a valid <&f>target<&c>, <&f>flag <&c>or <&f>operation<&c>."
 					- stop
 				
 				####################################
 				# |------- define options -------| #
 				####################################
+				- define option_1 <[options].get[1]||null>
+				- define option_2 <[options].get[2]||null>
+				- define option_3 <[options].get[3]||null>
+				- define option_4 <[options].get[4]||null>
+				- define option_5 <[options].get[5]||null>
 				- define flag null
 				- define operation null
 				- define value null
@@ -209,57 +202,64 @@ flag_editor_command:
 				#######################################
 				# |------- determine context -------| #
 				#######################################
-				- if ( not <[context].equals[null]> ):
-					- if ( <[public_flags]> contains <[context]> ) || ( <[option_1].equals[create]> && not <[public_flags].contains[<[context]>]> && not <[private_flags].contains[<[context]>]> ) || ( <[private_flags].contains[<[context]>]> && <[elevated]> ):
-						###############################
-						# |------- context 1 -------| #
-						###############################
-						- define flag <[context]>
-						- if ( <[flag_operations]> contains <[option_1]> ) && ( not <[option_1].equals[null]> ):
-							- define operation <[option_1]>
-							- if ( not <[option_2].equals[null]> ):
-								- define value <[option_2]>
-							###################################
-							# |------- try operation -------| #
-							###################################
-							- inject perform_flag_operation_task
-						- else:
-							#######################################
-							# |------- invalid operation -------| #
-							#######################################
-							- if ( not <[operation].equals[null]> ):
-								- narrate "<[prefix]> <&f><[operation]> <&c>is not a valid operation for the <&f><[flag]> <&c>flag."
+				- if ( not <[public_flags].equals[null]> ) && ( not <[private_flags].equals[null]> ) && ( not <[fragile_flags].equals[null]> ):
+					- if ( not <[context].equals[null]> ):
+						- if ( <[public_flags]> contains <[context]> ) || ( <[option_1].equals[create]> && not <[public_flags].contains[<[context]>]> && not <[private_flags].contains[<[context]>]> ) || ( <[private_flags].contains[<[context]>]> && <[elevated]> ):
+							###############################
+							# |------- context 1 -------| #
+							###############################
+							- define flag <[context]>
+							- if ( <[flag_operations]> contains <[option_1]> ) && ( not <[option_1].equals[null]> ):
+								- define operation <[option_1]>
+								- if ( not <[option_2].equals[null]> ):
+									- define value <[option_2]>
+								###################################
+								# |------- try operation -------| #
+								###################################
+								- inject perform_flag_operation_task
 							- else:
-								- narrate "<[prefix]> <&c>You must specify a valid <&f>operation <&c>to perform on the <&f><[flag]> <&c>flag."
-							- stop
-					
-					- else if ( <[flag_operations]> contains <[context]> ):
-						###############################
-						# |------- context 2 -------| #
-						###############################
-						- define operation <[context]>
-						- if ( <[public_flags].contains[<[option_1]>]> ) || ( <[operation].equals[create]> && not <[public_flags].contains[<[option_1]>]> && not <[private_flags].contains[<[option_1]>]> ) || ( <[private_flags].contains[<[option_1]>]> && <[elevated]> ):
-							- define flag <[option_1]>
-							- if ( not <[option_2].equals[null]> ):
-								- define value <[option_2]>
-							###################################
-							# |------- try operation -------| #
-							###################################
-							- inject perform_flag_operation_task
+								#######################################
+								# |------- invalid operation -------| #
+								#######################################
+								- if ( not <[operation].equals[null]> ):
+									- narrate "<[prefix]> <&f><[operation]> <&c>is not a valid operation for the <&f><[flag]> <&c>flag."
+								- else:
+									- narrate "<[prefix]> <&c>You must specify a valid <&f>operation <&c>to perform on the <&f><[flag]> <&c>flag."
+								- stop
+						
+						- else if ( <[flag_operations]> contains <[context]> ):
+							###############################
+							# |------- context 2 -------| #
+							###############################
+							- define operation <[context]>
+							- if ( <[public_flags].contains[<[option_1]>]> ) || ( <[operation].equals[create]> && not <[public_flags].contains[<[option_1]>]> && not <[private_flags].contains[<[option_1]>]> ) || ( <[private_flags].contains[<[option_1]>]> && <[elevated]> ):
+								- define flag <[option_1]>
+								- if ( not <[option_2].equals[null]> ):
+									- define value <[option_2]>
+								###################################
+								# |------- try operation -------| #
+								###################################
+								- inject perform_flag_operation_task
+							- else:
+								##################################
+								# |------- invalid flag -------| #
+								##################################
+								- narrate "<[prefix]> <&c>You must specify a valid <&f>flag <&c>to complete the <&f><[operation]> <&c>operation."
+								- stop
+						
 						- else:
-							##################################
-							# |------- invalid flag -------| #
-							##################################
-							- narrate "<[prefix]> <&c>You must specify a valid <&f>flag <&c>to complete the <&f><[operation]> <&c>operation."
+							#################################
+							# |------- invalid arg -------| #
+							#################################
+							- narrate "<[prefix]> <&c>You must specify either an existing <&f>flag <&c>or <&f>operation <&c>for the target <&f><[target].name.if_null[server]><&c>."
 							- stop
-					
-					- else:
-						#################################
-						# |------- invalid arg -------| #
-						#################################
-						- narrate "<[prefix]> <&c>You must specify either an existing <&f>flag <&c>or <&f>operation <&c>for the target <&f><[target].name.if_null[server]><&c>."
-						- stop
-			
+				- else:
+					####################################
+					# |------- null container -------| #
+					####################################
+					- narrate "<[prefix]> <&c>The target does not have the required <&f>containers <&c>to use flag edit commands."
+					- stop
+
 			- else if ( not <player.flag[flag_editor].if_null[true]> ):
 				##############################
 				# |------- disabled -------| #
@@ -329,7 +329,7 @@ perform_flag_operation_task:
 		#####################################
 		# |------- define prefixes -------| #
 		#####################################
-		- define prefix_cont <&7>[<&d><&l>con<&7><&l>:<&b><[container]><&7>]
+		- define prefix_cont <&7>[<&d><&l>cn<&7><&l>:<&b><[container]><&7>]
 		- define prefix_flag <&7>[<&d><&l>id<&7><&l>:<&b><[flag]><&7>]
 		- define prefix_oper <&7>[<&d><&l>op<&7><&l>:<&b><[operation]><&7>]
 		- define prefix_value <&7>[<&d><&l>val<&7><&l>:<&b><[value]><&7>]
