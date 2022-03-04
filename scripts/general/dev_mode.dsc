@@ -5,8 +5,12 @@
 
 
 developer_mode_data:
-    type: data
-	prefix: DevMode
+	type: data
+	prefixes:
+		# | ------- prefixes used throughout execution ------- | #
+		main: "<&7>[<&d><&l>DevMode<&7>]"
+		category_flag: "<&7>[<&b>FlagEditor<&7>]"
+		category_prox: "<&7>[<&b>Proximity<&7>]"
 	categories:
 		- flag
 		- flags
@@ -33,12 +37,12 @@ developer_mode:
 		- developermode
 		- hollow
 	permission: script.command.developer_mode
-	permission message: '<&7>[<&b><&l>DevMode<&7>] <&c>Entity: <&f><player.name> <&c>is not authorized to use <&f>developer mode<&c>.'
+	permission message: '<script[developer_mode_data].parsed_key[prefixes].get[main]> <&c>Entity: <&f><player.name> <&c>is not authorized to use <&f>developer mode<&c>.'
 	tab completions:
         1: flag|proximity
         2: enable|disable|true|false
         default: StopTyping
-	script:	
+	script:
 		######################################
 		# |------- define arguments -------| #
 		######################################
@@ -49,7 +53,7 @@ developer_mode:
 		#################################
 		# |------- define data -------| #
 		#################################
-		- define prefix <&7>[<&d><&l><script[developer_mode_data].data_key[prefix]><&7>]
+		- define prefix <script[developer_mode_data].parsed_key[prefixes].get[main]>
 		- define categories <script[developer_mode_data].data_key[categories]>
 		
 		################################
@@ -69,15 +73,16 @@ developer_mode:
 							- flag <player> flag_editor:false
 							- flag <player> public_flags:->:flag_editor
 						- define flag flag_editor
-						- define cat_prefix <&7>[<&b>FlagEditor<&7>]
+						- define cat_prefix <script[developer_mode_data].parsed_key[prefixes].get[category_flag]>
 					- case prox proximity:
 						- if ( not <player.has_flag[flag_proximity]> ) && ( not <player.flag[public_flags].contains[flag_proximity]> ):
 							- flag <player> flag_proximity:false
 							- flag <player> public_flags:->:flag_proximity
 						- define flag flag_proximity
-						- define cat_prefix <&7>[<&b>Proximity<&7>]
+						- define cat_prefix <script[developer_mode_data].parsed_key[prefixes].get[category_prox]>
 			- else:
 				 - narrate '<[prefix]> <&f><[category]> <&c>is not valid category.'
+				 - stop
 			
 			######################################
 			# |------- determine action -------| #
