@@ -1,4 +1,3 @@
-#
 # + -------------------------------------------------------------------------------------------- +
 # |
 # |  Flag Editor Command
@@ -14,32 +13,48 @@
 # @script-version 1.0.4
 #
 #
+# -------------------------------------------------------------------------------------------- +
+#
+#
 # Installation:
 # - Upload the script into your 'scripts' directory and reload denizen.
 #
 # Usage:
 # - Type command "/flag" to get usage info in-game.
 #
+# Permissions:
+# - flag_editor: script.command.flag_editor
+# - elevated_perms: script.command.elevated
+#
 #
 # -------------------------------------------------------------------------------------------- +
+#
 #
 # You can execute the command in two seperate contexts:
 #
-# - Context 1: /flag {target} {flag_id} {operation} {value|options}
+# Context 1:
+# - /flag {target} {flag_id} {operation} {value|options}
 #
-# - Context 2: /flag {target} {operation} {flag_id} {value|options}
+# Context 2:
+# - /flag {target} {operation} {flag_id} {value|options}
 #
-# - Defaults: The {target} argument is optional and defaults to <server>. 
+# Defaults:
+# - The {target} argument is optional and defaults to <server>.
+#
+#
+# -------------------------------------------------------------------------------------------- +
+#
+# Targets:
+# - | server | player_name | npc_id |
+#
+# Operations:
+# - | view | assign | create | delete | add | remove | edit | reset | sort |
+#
+# Containers:
+# - | public_flags | private_flags | fragile_flags |
 #
 # -------------------------------------------------------------------------------------------- +
 #
-# [Targets]: server | player_name | npc_id
-#
-# [Operations]: view | assign | create | delete | add | remove | edit | reset | sort
-#
-# [Containers]: public_flags | private_flags | fragile_flags
-#
-# -------------------------------------------------------------------------------------------- +
 #
 # Description...
 #
@@ -50,64 +65,47 @@
 # -------------------------------------------------------------------------------------------- +
 
 
-
-# | ---------------------------------------------- FLAG EDITOR | EVENTS --------------------------------------------- | #
-
-
-flag_editor_data_events:
-	######################################
-	# |------- event properties -------| #
-	######################################
-	type: world
-	debug: false
-	events:
-		################################
-		# |------- flag check -------| #
-		################################
-		after player joins:
-			- if not ( <player.has_flag[public_flags]> ):
-				- flag <player> public_flags:!|:<list[]>
-				- if ( not <player.has_flag[private_flags]> ):
-					- flag <player> private_flags:!|:<list[public_flags|private_flags|fragile_flags]>
-				- else:
-					- flag <player> private_flags:->:public_flags
-			- if not ( <player.has_flag[private_flags]> ):
-				- flag <player> private_flags:!|:<list[public_flags|private_flags|fragile_flags]>
-			- if not ( <player.has_flag[fragile_flags]> ):
-				- flag <player> fragile_flags:!|:<list[]>
-				- if ( not <player.has_flag[private_flags]> ):
-					- flag <player> private_flags:!|:<list[public_flags|private_flags|fragile_flags]>
-				- else:
-					- flag <player> private_flags:->:fragile_flags
-	
-
-	
 # | ---------------------------------------------- FLAG EDITOR | DATA --------------------------------------------- | #
 
 
-flag_editor_data:
-	#################################
-	# |------- editor data -------| #
-	#################################
-    type: data
-	prefix: Flag
+flag_editor_config:
+	###################################
+	# |------- editor config -------| #
+	###################################
+	type: data
+	prefixes:
+		# | --- prefixes used throughout execution --- | #
+		main: "<&7>[<&d><&l>Flag<&7>]"
+		flag: "<&7>[<&d><&l>id<&7><&l>:<&b><[flag].if_null[null]><&7>]"
+		container: "<&7>[<&d><&l>cn<&7><&l>:<&b><[container].if_null[null]><&7>]"
+		operation: "<&7>[<&d><&l>op<&7><&l>:<&b><[operation].if_null[null]><&7>]"
+		structure: "<&7>[<&d><&l>ds<&7><&l>:<&b><[structure].if_null[null]><&7>]"
+		key: "<&7>[<&d><&l>key<&7><&l>:<&b><[key].if_null[null]><&7>]"
+		value: "<&7>[<&d><&l>val<&7><&l>:<&b><[value].if_null[null]><&7>]"
 	operations:
+		# | --- elements contained define all flag operation inputs allowed --- | #
 		- view
 		- create
 		- delete
 		- add
 		- remove
 		- rename
-		- update
 		- edit
 		- reset
 		- sort
-	target_aliases:
-		- me
-		- myself
-		- server
+		- public
+		- --public
+		- private
+		- --private
+		- fragile
+		- --fragile
+	name-blacklist:
+		# | --- elements contained are blacklisted from flag id|name inputs --- | #
+		- <list[]>
+		- <map[]>
+		- <map[].before[<&rb>]>
 
-
+		- <>
 
 # | ---------------------------------------------- FLAG EDITOR | COMMANDS ---------------------------------------------- | #
 
@@ -124,7 +122,7 @@ flag_editor_command:
 	aliases:
 		- flags
 	permission: script.command.flag_editor
-	permission message: "<gray>[<&b><&l>DevMode<gray>] <&c>Entity<&co> <&f><player.name> <&c>is not authorized to use <&f>flag <&c>commands."
+	permission message: "<script[flag_editor_config].parsed_key[prefixes].get[main]> <&c>Entity<&co> <&f><player.name> <&c>is not authorized to use <&f>flag <&c>commands."
 	tab completions:
         1: <player.location.find_npcs_within[25].parse[id]||npc-id>|<server.online_players.parse[name]>|<server.offline_players.parse[name]>|server
         2: operation
@@ -135,38 +133,39 @@ flag_editor_command:
 		#################################
 		# |------- define data -------| #
 		#################################
-		- define prefix <&7>[<&d><&l><script[flag_editor_data].data_key[prefix]><&7>]
-		- define flag_operations <script[flag_editor_data].data_key[operations]>
-		- define target_aliases <script[flag_editor_data].data_key[target_aliases]>
+		- define prefix <script[flag_editor_config].parsed_key[prefixes].get[main]>
+		- define flag_operations <script[flag_editor_config].data_key[operations]>
+		- define id_blacklist <script[flag_editor_config].data_key[name-blacklist]>
 		- define elevated <player.has_permission[script.command.elevated].global>
 		- define first <context.args.get[1]||null>
 		
-		######################################
-		# |------- define arguments -------| #
-		######################################
+		###################################
+		# |------- define target -------| #
+		###################################
 		- if ( <context.source_type.equals[player]> ):
 			- if ( <player.flag[flag_editor].if_null[false]> ):
 				- if ( not <context.args.is_empty> ):
-					- if ( <[target_aliases].contains[<[first]>]> ):
+					- if ( <[first].equals[me]> ) || ( <[first].equals[myself]> ) || ( <server.npcs.contains[<npc[<[first]>].if_null[false]>]> ):
 						- if ( <[first].equals[me]> ) || ( <[first].equals[myself]> ):
 							- define target <player>
-							- define public_flags <[target].flag[public_flags]||null>
-							- define private_flags <[target].flag[private_flags]||null>
-							- define fragile_flags <[target].flag[fragile_flags]||null>
-						- else if ( <[first].equals[server]> ):
-							- define target server
-							- define public_flags <server.flag[public_flags]||null>
-							- define private_flags <server.flag[private_flags]||null>
-							- define fragile_flags <server.flag[fragile_flags]||null>
+						- else if ( <server.npcs.contains[<npc[<[first]>].if_null[false]>]> ):
+							- define target <npc[<[first]>]>
+						- define public_flags <[target].flag[public_flags]||null>
+						- define private_flags <[target].flag[private_flags]||null>
+						- define fragile_flags <[target].flag[fragile_flags]||null>
 						- define context <context.args.get[2]||null>
 						- define options <context.args.exclude[<[context]>|<[first]>]||null>
-					- else if ( <server.flag[public_flags].if_null[<list[]>]> contains <[first]> ) || ( <server.flag[private_flags].if_null[<list[]>]> contains <[first]> ) || ( <[flag_operations]> contains <[first]> ):
+					- else if ( <[first].equals[server]> ) || ( <server.flag[public_flags].if_null[<list[]>]> contains <[first]> ) || ( <server.flag[private_flags].if_null[<list[]>]> contains <[first]> ) || ( <[flag_operations]> contains <[first]> ):
 						- define target server
 						- define public_flags <server.flag[public_flags]||null>
 						- define private_flags <server.flag[private_flags]||null>
 						- define fragile_flags <server.flag[fragile_flags]||null>
-						- define context <[first]>
-						- define options <context.args.exclude[<[context]>]||null>
+						- if ( <[first].equals[server]> ):
+							- define context <context.args.get[2]||null>
+							- define options <context.args.exclude[<[context]>|<[first]>]||null>
+						- else:
+							- define context <[first]>
+							- define options <context.args.exclude[<[context]>]||null>
 					- else if ( <server.match_player[<[first]>].exists> || <server.match_offline_player[<[first]>].exists> ) && ( not <server.match_player[<[first]>].if_null[<server.match_offline_player[<[first]>]>].flag[public_flags].if_null[<list[]>].contains[<[first]>]> ) && ( not <server.match_player[<[first]>].if_null[<server.match_offline_player[<[first]>]>].flag[private_flags].if_null[<list[]>].contains[<[first]>]> ) && ( not <[flag_operations].contains[<[first]>]> ):
 						- define target <server.match_player[<[first]>].if_null[<server.match_offline_player[<[first]>]>]>
 						- define public_flags <[target].flag[public_flags]||null>
@@ -251,7 +250,7 @@ flag_editor_command:
 							#################################
 							# |------- invalid arg -------| #
 							#################################
-							- narrate "<[prefix]> <&c>You must specify either an existing <&f>flag <&c>or <&f>operation <&c>for the target <&f><[target].name.if_null[server]><&c>."
+							- narrate "<[prefix]> <&c>You must specify either an existing <&f>flag <&c>or <&f>operation <&c>for the target <&f><[target].name.if_null[<[target].id.if_null[<[target]>]>]><&c>."
 							- stop
 				- else:
 					####################################
@@ -276,7 +275,7 @@ flag_editor_command:
 				- stop
 			
 			
-			
+
 # | ---------------------------------------------- FLAG EDITOR | TASKS ---------------------------------------------- | #
 
 
@@ -288,8 +287,8 @@ perform_flag_operation_task:
 		# |------- define data -------| #
 		#################################
 		- define data <[target].flag[<[flag]>].if_null[<server.flag[<[flag]>].if_null[null]>]>
-		- define tagged <[target].has_flag[<[flag]>].if_null[<server.has_flag[<[flag]>].if_null[<npc.has_flag[<[flag]>].if_null[null]>]>]>
-		- define entity <[target].name.if_null[<[target]>]>
+		- define tagged <[target].has_flag[<[flag]>].if_null[<server.has_flag[<[flag]>].if_null[null]>]>
+		- define entity <[target].name.if_null[<[target].id.if_null[<[target]>]>]>
 		- define valid true
 		- define public false
 		- define private false
@@ -297,9 +296,9 @@ perform_flag_operation_task:
 		- define structure null
 		- define container public_flags
 		
-		################################
-		# |------- data check -------| #
-		################################
+		#####################################
+		# |------- container check -------| #
+		#####################################
 		- if ( <[fragile_flags]> contains <[flag]> ):
 			- define fragile true
 			- define valid false
@@ -321,20 +320,16 @@ perform_flag_operation_task:
 				- define structure list
 			- else if ( <[data].starts_with[<map[].before[<&rb>]>]> ):
 				- define structure map
-				- define key <[value]>
-				- define value <[option_3]>
 			- else:
 				- define structure data
 		
 		#####################################
 		# |------- define prefixes -------| #
 		#####################################
-		- define prefix_cont <&7>[<&d><&l>cn<&7><&l>:<&b><[container]><&7>]
-		- define prefix_flag <&7>[<&d><&l>id<&7><&l>:<&b><[flag]><&7>]
-		- define prefix_oper <&7>[<&d><&l>op<&7><&l>:<&b><[operation]><&7>]
-		- define prefix_value <&7>[<&d><&l>val<&7><&l>:<&b><[value]><&7>]
-		- define prefix_key <&7>[<&d><&l>key<&7><&l>:<&b><[key].if_null[null]><&7>]
-		- define prefix_type <&7>[<&d><&l>db<&7><&l>:<&b><[structure]><&7>]
+		- define prefix_flag <script[flag_editor_config].parsed_key[prefixes].get[flag]>
+		- define prefix_cont <script[flag_editor_config].parsed_key[prefixes].get[container]>
+		- define prefix_oper <script[flag_editor_config].parsed_key[prefixes].get[operation]>
+		- define prefix_struct <script[flag_editor_config].parsed_key[prefixes].get[structure]>
 		
 		#########################################
 		# |------- determine operation -------| #
@@ -362,7 +357,7 @@ perform_flag_operation_task:
 							- inject flag_editor_dialog
 						- if ( <[valid]> ):
 							- narrate "<&nl><[prefix]> <&f>Targeting <&b><[entity]> <&f><[container]>."
-							- narrate "<[prefix_oper]> <[prefix_flag]> <[prefix_type]>"
+							- narrate "<[prefix_oper]> <[prefix_flag]> <[prefix_struct]>"
 							- if ( <[structure].equals[data]> ):
 								- if ( <[data].equals[<empty>]> ):
 									- narrate "    <&7>- <&f>empty"
@@ -449,32 +444,38 @@ perform_flag_operation_task:
 				- if ( <[tagged]> ):
 					- if ( <[structure].equals[data]> ):
 						- if ( not <[value].equals[null]> ):
+							- define prefix_value <script[flag_editor_config].parsed_key[prefixes].get[value]>
 							- if ( not <[data].contains[<[value]>]> ):
 								- flag <[target]> <[flag]>:->:<[value]>
 								- narrate "<&nl><[prefix]> <&f>Added <&b><[value]> <&f>to the <&b><[flag]> <&f>flag."
-								- narrate "<[prefix_oper]> <[prefix_value]> <[prefix_flag]> <[prefix_type]>"
+								- narrate "<[prefix_oper]> <[prefix_value]> <[prefix_flag]> <[prefix_struct]>"
 							- else:
 								- narrate "<[prefix]> <&c>The flag <&f><[flag]> <&c>already contains the <&f><[value]> <&c>value."
 						- else:
 							- narrate "<[prefix]> <&c>You must specify a valid <&f>value <&c>to add to the <&f><[flag]> <&c>flag."
 					- else if ( <[structure].equals[list]> ):
 						- if ( not <[value].equals[null]> ):
+							- define prefix_value <script[flag_editor_config].parsed_key[prefixes].get[value]>
 							- if ( not <[data].contains[<[value]>]> ):
 								- flag <[target]> <[flag]>:->:<[value]>
 								- narrate "<&nl><[prefix]> <&f>Added <&b><[value]> <&f>to the <&b><[flag]> <&f>flag."
-								- narrate "<[prefix_oper]> <[prefix_value]> <[prefix_flag]> <[prefix_type]>"
+								- narrate "<[prefix_oper]> <[prefix_value]> <[prefix_flag]> <[prefix_struct]>"
 							- else:
 								- narrate "<[prefix]> <&c>The flag <&f><[flag]> <&c>already contains the <&f><[value]> <&c>value."
 						- else:
 							- narrate "<[prefix]> <&c>You must specify a valid <&f>value <&c>to add to the <&f><[flag]> <&c>flag."
 					- else if ( <[structure].equals[map]> ):
+						- define key <[value]>
+						- define value <[option_3]>
+						- define prefix_key <script[flag_editor_config].parsed_key[prefixes].get[key]>
+						- define prefix_value <script[flag_editor_config].parsed_key[prefixes].get[value]>
 						- if ( not <[key].equals[null]> ):
 							- if ( not <[value].equals[null]> ):
 								- if ( not <[data].contains[<[key]>]> ):
 									- define copy <[data].include[<[key]>=<[value]>]>
 									- flag <[target]> <[flag]>:<[copy]>
 									- narrate "<&nl><[prefix]> <&f>Added <&b><[key]> <&f>key to the <&b><[flag]> <&f>flag."
-									- narrate "<[prefix_oper]> <[prefix_key]> <[prefix_flag]> <[prefix_type]>"
+									- narrate "<[prefix_oper]> <[prefix_key]> <[prefix_flag]> <[prefix_struct]>"
 								- else:
 									- narrate "<[prefix]> <&c>The flag <&f><[flag]> <&c>already contains the <&f><[key]> <&c>key."
 							- else:
@@ -491,31 +492,37 @@ perform_flag_operation_task:
 				- if ( <[tagged]> ):
 					- if ( <[structure].equals[data]> ):
 						- if ( not <[value].equals[null]> ):
+							- define prefix_value <script[flag_editor_config].parsed_key[prefixes].get[value]>
 							- if ( <[data].contains[<[value]>]> ):
 								- flag <[target]> <[flag]>:<-:<[value]>
 								- narrate "<&nl><[prefix]> <&f>Removed <&b><[value]> <&f>from the <&b><[flag]> <&f>flag."
-								- narrate "<[prefix_oper]> <[prefix_value]> <[prefix_flag]> <[prefix_type]>"
+								- narrate "<[prefix_oper]> <[prefix_value]> <[prefix_flag]> <[prefix_struct]>"
 							- else:
 								- narrate "<[prefix]> <&c>The flag <&f><[flag]> <&c>doesn't contain the <&f><[value]> <&c>value."
 						- else:
 							- narrate "<[prefix]> <&c>You must specify a valid <&f>value <&c>to remove from the <&f><[flag]> <&c>flag."
 					- else if ( <[structure].equals[list]> ):
 						- if ( not <[value].equals[null]> ):
+							- define prefix_value <script[flag_editor_config].parsed_key[prefixes].get[value]>
 							- if ( <[data].contains[<[value]>]> ):
 								- flag <[target]> <[flag]>:<-:<[value]>
 								- narrate "<&nl><[prefix]> <&f>Removed <&b><[value]> <&f>from the <&b><[flag]> <&f>flag."
-								- narrate "<[prefix_oper]> <[prefix_value]> <[prefix_flag]> <[prefix_type]>"
+								- narrate "<[prefix_oper]> <[prefix_value]> <[prefix_flag]> <[prefix_struct]>"
 							- else:
 								- narrate "<[prefix]> <&c>The flag <&f><[flag]> <&c>doesn't contain the <&f><[value]> <&c>value."
 						- else:
 							- narrate "<[prefix]> <&c>You must specify a valid <&f>value <&c>to remove from the <&f><[flag]> <&c>flag."
 					- else if ( <[structure].equals[map]> ):
+						- define key <[value]>
+						- define value <[option_3]>
+						- define prefix_key <script[flag_editor_config].parsed_key[prefixes].get[key]>
+						- define prefix_value <script[flag_editor_config].parsed_key[prefixes].get[value]>
 						- if ( not <[key].equals[null]> ):
 							- if ( <[data].contains[<[key]>]> ):
 								- define copy <[data].exclude[<[key]>]>
 								- flag <[target]> <[flag]>:<[copy]>
 								- narrate "<&nl><[prefix]> <&f>Removed <&b><[key]> <&f>from the <&b><[flag]> <&f>flag."
-								- narrate "<[prefix_oper]> <[prefix_key]> <[prefix_flag]> <[prefix_type]>"
+								- narrate "<[prefix_oper]> <[prefix_key]> <[prefix_flag]> <[prefix_struct]>"
 							- else:
 								- narrate "<[prefix]> <&c>The flag <&f><[flag]> <&c>doesn't contain the <&f><[key]> <&c>key."
 						- else:
@@ -523,24 +530,41 @@ perform_flag_operation_task:
 				- else:
 					- narrate "<[prefix]> <&f><[entity]> <&c>doesn't have the <&f><[flag]> <&c>flag."
 			
-			- case update:
-				############################
-				# |------- update -------| #
-				############################
-				- narrate null
-			
 			- case rename:
 				############################
 				# |------- rename -------| #
 				############################
+				- if ( <[tagged]> ):
+					- if ( <[public]> && not <[private]> ) || ( <[private]> && not <[public]> && <[elevated]> ):
+						- if ( <[fragile]> ):
+							- inject flag_editor_dialog
+						- if ( <[valid]> ):
+							- if ( not <[value].equals[null]> ):
+								- define prefix_value <script[flag_editor_config].parsed_key[prefixes].get[value]>
+								- if ( not <[public_flags].contains[<[value]>]> ) && ( not <[private_flags].contains[<[value]>]> ):
+									- flag <[target]> <[flag]>:!
+									- flag <[target]> <[container]>:<-:<[flag]>
+									- flag <[target]> <[value]>:<[data]>
+									- flag <[target]> <[container]>:->:<[value]>
+									- narrate "<&nl><[prefix]> <&f>Renamed <&b><[flag]> <&f>flag to <&b><[value]> <&f>from the target <&b><[entity]><&f>."
+									- narrate "<[prefix_oper]> <[prefix_flag]> <[prefix_value]>"
+								- else:
+									- narrate "<[prefix]> <&c>A flag with the name <&f><[value]> <&c>already exists in target <&f><[entity]><&c>."
+							- else:
+								- narrate "<[prefix]> <&c>You must specify a <&f>name <&c>to rename the <&f><[flag]> <&c>flag."
+						- else:
+							- narrate "<[prefix]> <&c>Cancelled operation <&f><[operation]> <&c>on protected flag <&f><[flag]><&c>."
+					- else:
+						- narrate "<[prefix]> <&c>The flag <&f><[flag]> <&c>is private and cannot be renamed."
+				- else:
+					- narrate "<[prefix]> <&c>Target <&f><[entity]> <&c>does not contain the <&f><[flag]> <&c>flag."
+			
+			- case public --public private --private fragile --fragile:
+				###############################
+				# |------- container -------| #
+				###############################
 				- narrate null
 
-			- case edit:
-				##########################
-				# |------- edit -------| #
-				##########################
-				- narrate "this is definetly going to be the most complicated operation and will probably be added last..."
-			
 			- case reset:
 				###########################
 				# |------- reset -------| #
@@ -552,6 +576,12 @@ perform_flag_operation_task:
 				# |------- sort -------| #
 				##########################
 				- narrate null
+
+			- case edit:
+				##########################
+				# |------- edit -------| #
+				##########################
+				- narrate "this is definetly going to be the most complicated operation and will probably be added last..."
 
 
 
@@ -568,4 +598,34 @@ flag_editor_dialog:
 		- narrate "                                   (creating | deleting | reseting flags )                                          "
 		- define valid true
 
+
+
+# | ---------------------------------------------- FLAG EDITOR | EVENTS --------------------------------------------- | #
+
+
+flag_editor_config_events:
+	######################################
+	# |------- event properties -------| #
+	######################################
+	type: world
+	debug: false
+	events:
+		################################
+		# |------- flag check -------| #
+		################################
+		after player joins:
+			- if not ( <player.has_flag[private_flags]> ):
+				- flag <player> private_flags:!|:<list[public_flags|private_flags|fragile_flags]>
+			- if not ( <player.has_flag[public_flags]> ):
+				- flag <player> public_flags:!|:<list[]>
+				- if not ( <player.flag[private_flags].contains[public_flags].if_null[true]> ):
+					- flag <player> private_flags:->:public_flags
+			- if not ( <player.has_flag[fragile_flags]> ):
+				- flag <player> fragile_flags:!|:<list[]>
+				- if not ( <player.flag[private_flags].contains[fragile_flags].if_null[true]> ):
+					- flag <player> private_flags:->:fragile_flags
+
+
+
+# | ------------------------------------------------------------------------------------------------------------------------------ | #
 
