@@ -113,7 +113,7 @@ flag_editor_config:
 		# | ---  The elements contained determine the main sequence of tasks injected into the command queue. --- | #
 		# | ---  The elements contained must match task script ids and will be injected in descending order.  --- | #
 		# | ---  The three tasks listed below are the tasks executed when performing an operation on a flag.  --- | #
-		# | ---  Empty or null values will be skipped on execution and a log message output to the console.   --- | #
+		# | ---  Empty or null values will be skipped on execution. Invalid tasks will output to the console. --- | #
 		# | ---  This section is intended to make modifying main command tasks simpler and allow a cleaner    --- | #
 		# | ---  solution for task management, without requiring any direct modification to existing scripts. --- | #
 		- null
@@ -185,12 +185,12 @@ flag_editor_command:
 						# |------- start tasks -------| #
 						#################################
 						- foreach <[tasks]> as:task:
-							- if ( <[task].equals[<empty>]> ) || ( <[task].equals[null]> ) || ( not <script[<[task]>].exists> ):
+							- if ( <[task].equals[<empty>]> ) || ( <[task].equals[null]> ):
 								- foreach next
+							- else if ( <script[<[task]>].exists> ):
+								- inject <[task]>
 							- else:
-								- define path <script[<[task]>].relative_filename>
-								- if ( <server.has_file[<[path]>].if_null[false]> ):
-									- inject <[task]>
+								- announce to_console "<&lb>Flag Editor<&rb> -<&gt> <&lb>Warning<&rb> - The element '<[task]>' is not a valid task script and was subsequently skipped."
 					- else if ( not <player.flag[flag_editor]> ):
 						##############################
 						# |------- disabled -------| #
