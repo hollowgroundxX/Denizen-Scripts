@@ -10,9 +10,9 @@ npc_interrupt_config:
 	type: data
 	prefixes:
 		# | --- prefixes --- | #
-		main: "<&7>[<&b><&l>NPC.<npc.id><&7>]"
+		ID: "<&7>[<&b><&l>NPC.<npc.id><&7>]"
 	# | --- default pose --- | #
-	pose: static
+	pose-id: static
 	# | --- compatible scripts --- | #
 	scripts:
 		# | --- flag editor by HollowTheSilver --- | #
@@ -23,24 +23,98 @@ npc_interrupt_config:
 # | ---------------------------------------------- NPC INTERRUPT | ASSIGNMENTS ---------------------------------------------- | #
 
 
-npc_interrupt_fishermen:
+
+npc_interrupt_navigating:
 	###########################################
 	# |------- assignment properties -------| #
 	###########################################
     type: assignment
-    debug: true
+    debug: false
     actions:
 		on assignment:
 			######################################
 			# |------- dependency check -------| #
 			######################################
-			- define npc_type fishermen
+			- define npc_type navigating
+			- inject npc_interrupt_dependency_check
+			- trigger name:proximity state:true radius:5
+			#####################################
+			# |------- proximity check -------| #
+			#####################################
+			- define in_range <npc.location.find_players_within[5]>
+			- if not ( <[in_range].is_empty> ):
+				- if ( <player.gamemode.equals[spectator]> || <player.has_effect[INVISIBILITY]> ) && ( not <npc.flag[ignored].contains[<player>]> ):
+					- flag <npc> ignored:->:<player>
+				- else:
+					- wait 1s
+					- if ( <[in_range].exclude[<player>].equals[<npc.flag[ignored]>]> ) && ( not <npc.flag[interrupted]> ):
+						- pause waypoints
+						- flag <npc> interrupted:true
+						- if not ( <npc.lookclose> ):
+							- lookclose <npc> true
+
+		on enter proximity:
+			##########################################
+			# |------- interrupt navigating -------| #
+			##########################################
+			- if ( <player.gamemode.equals[spectator]> ) || ( <player.has_effect[INVISIBILITY]> ):
+				- if ( not <npc.flag[ignored].contains[<player>]> ):
+					- flag <npc> ignored:->:<player>
+			- else if ( not <npc.flag[ignored].contains[<player>]> ) && ( not <npc.flag[interrupted]> ):
+				- pause waypoints
+				- if not ( <npc.lookclose> ):
+					- lookclose <npc> true
+				- flag <npc> interrupted:true
+			- if ( <script[flag_editor_command].exists> ):
+				- customevent id:npc_interrupt_proximity_event
+		
+		on exit proximity:
+			- if ( <npc.flag[ignored].contains[<player>]> ):
+				- flag <npc> ignored:<-:<player>
+			- else:
+				###############################
+				# |------- flag data -------| #
+				###############################
+				- wait 1s
+				- define type <npc.flag[type]>
+				- define interrupted <npc.flag[interrupted]>
+				- define ignored <npc.flag[ignored]>
+				- define in_range <npc.location.find_players_within[5]>
+				#######################################
+				# |------- resume navigating -------| #
+				#######################################
+				- if ( <[interrupted].equals[true]> && not <[ignored].contains[<player>]> && <[in_range].is_empty> ) || ( <[interrupted].equals[true]> && not <[ignored].contains[<player>]> && <[in_range].equals[<[ignored]>]> ):
+					- resume waypoints
+					- if ( <npc.lookclose> ):
+						- lookclose <npc> false
+					- look yaw:<npc.eye_location.yaw> pitch:0.0
+					- flag <npc> interrupted:false
+			- if ( <script[flag_editor_command].exists> ):
+				- customevent id:npc_interrupt_proximity_event
+
+
+
+# | ------------------------------------------------------------------------------------------------------------------------------ | #
+
+
+
+npc_interrupt_fishing:
+	###########################################
+	# |------- assignment properties -------| #
+	###########################################
+    type: assignment
+    debug: false
+    actions:
+		on assignment:
+			######################################
+			# |------- dependency check -------| #
+			######################################
+			- define npc_type fishing
 			- inject npc_interrupt_dependency_check
 			#################################
 			# |------- define data -------| #
 			#################################
-			- define prefix <script[npc_interrupt_config].parsed_key[prefixes].get[main]||null>
-			- define pose <script[npc_interrupt_config].data_key[pose]||null>
+			- define pose <script[npc_interrupt_config].data_key[pose-id]||null>
 			################################
 			# |------- pose check -------| #
 			################################
@@ -52,7 +126,8 @@ npc_interrupt_fishermen:
 				- execute as_server "npc select <npc.id>" silent
 				- execute as_server "npc pose --default <[pose]>" silent
 				- trigger name:proximity state:true radius:5
-				- lookclose <npc> true
+				- if not ( <npc.lookclose> ):
+					- lookclose <npc> true
 				#####################################
 				# |------- proximity check -------| #
 				#####################################
@@ -68,14 +143,10 @@ npc_interrupt_fishermen:
 					- else if ( <[in_range].exclude[<player>].equals[<npc.flag[ignored]>]> ) && ( not <npc.flag[interrupted]> ):
 						- flag <npc> interrupted:true
 			- else:
-				- narrate "<[prefix]> <&c>This NPC does not have the required <&f><[pose]> <&c>pose. Please add the pose and try again."
+				- narrate "<[prefix]> <&c>This NPC does not have the required <&f>'<[pose]>' <&c>pose. Please add the pose and try again."
 				- assignment remove script:<script.name>
 
 		on enter proximity:
-			#################################
-			# |------- define data -------| #
-			#################################
-			- define prefix <script[npc_interrupt_config].parsed_key[prefixes].get[main]||null>
 			#########################################
 			# |------- interrupt fishermen -------| #
 			#########################################
@@ -85,19 +156,16 @@ npc_interrupt_fishermen:
 			- else if ( not <npc.flag[ignored].contains[<player>]> ) && ( not <npc.flag[interrupted]> ):
 				- fish stop
 				- flag <npc> interrupted:true
-			- if ( <player.flag[flag_proximity]> ):
-				- narrate "<&nl><[prefix]> <&f>Type: <&b><npc.flag[type]>"
-				- narrate "<[prefix]> <&f>Interrupted: <&b><npc.flag[interrupted]>"
-				- narrate "<[prefix]> <&f>Ignoring: <&b><npc.flag[ignored].size>"
+			- if ( <script[flag_editor_command].exists> ):
+				- customevent id:npc_interrupt_proximity_event
 		
 		on exit proximity:
-			- define prefix <script[npc_interrupt_config].parsed_key[prefixes].get[main]||null>
 			- if ( <npc.flag[ignored].contains[<player>]> ):
 				- flag <npc> ignored:<-:<player>
 			- else:
-				#################################
-				# |------- define data -------| #
-				#################################
+				###############################
+				# |------- flag data -------| #
+				###############################
 				- wait 1s
 				- define type <npc.flag[type]>
 				- define interrupted <npc.flag[interrupted]>
@@ -109,35 +177,16 @@ npc_interrupt_fishermen:
 				- if ( <[interrupted].equals[true]> && not <[ignored].contains[<player>]> && <[in_range].is_empty> ) || ( <[interrupted].equals[true]> && not <[ignored].contains[<player>]> && <[in_range].equals[<[ignored]>]> ):
 					- fish <npc.cursor_on>
 					- flag <npc> interrupted:false
-			- if ( <player.flag[flag_proximity]> ):
-				- narrate "<&nl><[prefix]> <&f>Type: <&b><npc.flag[type]>"
-				- narrate "<[prefix]> <&f>Interrupted: <&b><npc.flag[interrupted]>"
-				- narrate "<[prefix]> <&f>Ignoring: <&b><npc.flag[ignored].size>"
-
-
-
-# | ------------------------------------------------------------------------------------------------------------------------------ | #
-
-
-npc_interrupt_guard:
-	###########################################
-	# |------- assignment properties -------| #
-	###########################################
-    type: assignment
-    debug: false
-    actions:
-		on assignment:
-		################################
-		# |------- Placholder -------| #
-		################################
-			- narrate placeholder
+			- if ( <script[flag_editor_command].exists> ):
+				- customevent id:npc_interrupt_proximity_event
 
 
 
 # | ---------------------------------------------- NPC INTERRUPT | EVENTS ---------------------------------------------- | #
 
 
-npc_interrupt_fishermen_events:
+
+npc_interrupt_events:
 	######################################
 	# |------- event properties -------| #
 	######################################
@@ -156,11 +205,10 @@ npc_interrupt_fishermen_events:
 						- if ( <player.gamemode.equals[spectator]> || <player.has_effect[INVISIBILITY]> ) && ( not <npc.flag[ignored].contains[<player>]> ):
 							- flag <npc> ignored:->:<player>
 						- else:
-							#################################
-							# |------- define data -------| #
-							#################################
+							###############################
+							# |------- flag data -------| #
+							###############################
 							- wait 1s
-							- define prefix <script[npc_interrupt_config].parsed_key[prefixes].get[main]||null>
 							- define type <npc.flag[type]>
 							- define interrupted <npc.flag[interrupted]>
 							- define ignored <npc.flag[ignored]>
@@ -170,15 +218,16 @@ npc_interrupt_fishermen_events:
 							###################################
 							- if ( <[nearby].exclude[<player>].equals[<[ignored]>]> ) && ( not <[interrupted]> ):
 								- choose <[type]>:
-									- case null:
-										- narrate placeholder
-									- case fishermen:
+									- case navigating:
+										- pause waypoints
+										- if not ( <npc.lookclose> ):
+											- lookclose <npc> true
+										- flag <npc> interrupted:true
+									- case fishing:
 										- fish stop
 										- flag <npc> interrupted:true
-							- if ( <player.flag[flag_proximity]> ):
-								- narrate "<&nl><[prefix]> <&f>Type: <&b><npc.flag[type]>"
-								- narrate "<[prefix]> <&f>Interrupted: <&b><npc.flag[interrupted]>"
-								- narrate "<[prefix]> <&f>Ignoring: <&b><npc.flag[ignored].size>"
+							- if ( <script[flag_editor_command].exists> ):
+								- customevent id:npc_interrupt_proximity_event
 		
 		on player quits:
 			############################################
@@ -192,11 +241,10 @@ npc_interrupt_fishermen_events:
 						- if ( <npc.flag[ignored].contains[<player>]> ):
 							- flag <npc> ignored:<-:<player>
 						- else:
-							#################################
-							# |------- define data -------| #
-							#################################
+							###############################
+							# |------- flag data -------| #
+							###############################
 							- wait 1s
-							- define prefix <script[npc_interrupt_config].parsed_key[prefixes].get[main]||null>
 							- define type <npc.flag[type]>
 							- define interrupted <npc.flag[interrupted]>
 							- define ignored <npc.flag[ignored]>
@@ -206,7 +254,13 @@ npc_interrupt_fishermen_events:
 							################################
 							- if ( <[interrupted].equals[true]> && <[nearby].exclude[<[ignored]>].size.equals[0]> ) || ( <[interrupted].equals[true]> ) && ( <[ignored].is_empty> && <[nearby].is_empty> ):
 								- choose <[type]>:
-									- case fishermen:
+									- case navigating:
+										- resume waypoints
+										- if ( <npc.lookclose> ):
+											- lookclose <npc> false
+										- look yaw:<npc.eye_location.yaw> pitch:0.0
+										- flag <npc> interrupted:false
+									- case fishing:
 										- fish <npc.cursor_on>
 										- flag <npc> interrupted:false
 			
@@ -222,11 +276,10 @@ npc_interrupt_fishermen_events:
 						- if ( <npc.has_flag[type]> ) && ( <npc.has_flag[interrupted]> ) && ( <npc.has_flag[ignored]> ):
 							- if not ( <npc.flag[ignored].contains[<player>]> ):
 								- flag <npc> ignored:->:<player>
-							#################################
-							# |------- define data -------| #
-							#################################
+							###############################
+							# |------- flag data -------| #
+							###############################
 							- wait 1s
-							- define prefix <script[npc_interrupt_config].parsed_key[prefixes].get[main]||null>
 							- define type <npc.flag[type]>
 							- define interrupted <npc.flag[interrupted]>
 							- define ignored <npc.flag[ignored]>
@@ -236,14 +289,17 @@ npc_interrupt_fishermen_events:
 							################################
 							- if ( <[interrupted].equals[true]> && <[nearby].exclude[<[ignored]>].size.equals[0]> ) || ( <[interrupted].equals[true]> ) && ( <[ignored].is_empty> && <[nearby].is_empty> ):
 								- choose <[type]>:
-									- case fishermen:
+									- case navigating:
+										- resume waypoints
+										- if ( <npc.lookclose> ):
+											- lookclose <npc> false
+										- look yaw:<npc.eye_location.yaw> pitch:0.0
+										- flag <npc> interrupted:false
+									- case fishing:
 										- fish <npc.cursor_on>
 										- flag <npc> interrupted:false
 							- if ( <script[flag_editor_command].exists> ):
-								- if ( <player.flag[flag_proximity]> ):
-									- narrate "<&nl><[prefix]> <&f>Type: <&b><npc.flag[type]>"
-									- narrate "<[prefix]> <&f>Interrupted: <&b><npc.flag[interrupted]>"
-									- narrate "<[prefix]> <&f>Ignoring: <&b><npc.flag[ignored].size>"
+								- customevent id:npc_interrupt_proximity_event
 
 		after player changes gamemode:
 			- define gamemode <player.gamemode>
@@ -258,11 +314,10 @@ npc_interrupt_fishermen_events:
 						- if ( <npc.has_flag[type]> ) && ( <npc.has_flag[interrupted]> ) && ( <npc.has_flag[ignored]> ):
 							- if not ( <npc.flag[ignored].contains[<player>]> ):
 								- flag <npc> ignored:->:<player>
-							#################################
-							# |------- define data -------| #
-							#################################
+							###############################
+							# |------- flag data -------| #
+							###############################
 							- wait 1s
-							- define prefix <script[npc_interrupt_config].parsed_key[prefixes].get[main]||null>
 							- define type <npc.flag[type]>
 							- define interrupted <npc.flag[interrupted]>
 							- define ignored <npc.flag[ignored]>
@@ -272,14 +327,17 @@ npc_interrupt_fishermen_events:
 							################################
 							- if ( <[interrupted].equals[true]> && <[nearby].exclude[<[ignored]>].size.equals[0]> ) || ( <[interrupted].equals[true]> ) && ( <[ignored].is_empty> && <[nearby].is_empty> ):
 								- choose <[type]>:
-									- case fishermen:
+									- case navigating:
+										- resume waypoints
+										- if ( <npc.lookclose> ):
+											- lookclose <npc> false
+										- look yaw:<npc.eye_location.yaw> pitch:0.0
+										- flag <npc> interrupted:false
+									- case fishing:
 										- fish <npc.cursor_on>
 										- flag <npc> interrupted:false
 							- if ( <script[flag_editor_command].exists> ):
-								- if ( <player.flag[flag_proximity]> ):
-									- narrate "<&nl><[prefix]> <&f>Type: <&b><npc.flag[type]>"
-									- narrate "<[prefix]> <&f>Interrupted: <&b><npc.flag[interrupted]>"
-									- narrate "<[prefix]> <&f>Ignoring: <&b><npc.flag[ignored].size>"
+								- customevent id:npc_interrupt_proximity_event
 			- else if ( <[gamemode].equals[survival]> ) ||  ( <[gamemode].equals[adventure]> ) || ( <[gamemode].equals[creative]> ):
 				###############################################
 				# |------- npc range interrupt check -------| #
@@ -291,11 +349,10 @@ npc_interrupt_fishermen_events:
 						- if ( <npc.has_flag[type]> ) && ( <npc.has_flag[interrupted]> ) && ( <npc.has_flag[ignored]> ):
 							- if ( <npc.flag[ignored].contains[<player>]> ):
 								- flag <npc> ignored:<-:<player>
-							#################################
-							# |------- define data -------| #
-							#################################
+							###############################
+							# |------- flag data -------| #
+							###############################
 							- wait 1s
-							- define prefix <script[npc_interrupt_config].parsed_key[prefixes].get[main]||null>
 							- define type <npc.flag[type]>
 							- define interrupted <npc.flag[interrupted]>
 							- define ignored <npc.flag[ignored]>
@@ -305,15 +362,16 @@ npc_interrupt_fishermen_events:
 							###################################
 							- if ( <[nearby].exclude[<player>].equals[<[ignored]>]> ) && ( not <[interrupted]> ):
 								- choose <npc.flag[type].if_null[null]>:
-									- case null:
-										- narrate placeholder
-									- case fishermen:
+									- case navigating:
+										- pause waypoints
+										- if not ( <npc.lookclose> ):
+											- lookclose <npc> true
+										- flag <npc> interrupted:true
+									- case fishing:
 										- fish stop
 										- flag <npc> interrupted:true
-							- if ( <player.flag[flag_proximity]> ):
-								- narrate "<&nl><[prefix]> <&f>Type: <&b><npc.flag[type]>"
-								- narrate "<[prefix]> <&f>Interrupted: <&b><npc.flag[interrupted]>"
-								- narrate "<[prefix]> <&f>Ignoring: <&b><npc.flag[ignored].size>"
+							- if ( <script[flag_editor_command].exists> ):
+								- customevent id:npc_interrupt_proximity_event
 
 
 
@@ -327,14 +385,13 @@ npc_interrupt_dependency_check:
 		#################################
 		# |------- define data -------| #
 		#################################
-		- define prefix <script[npc_interrupt_config].parsed_key[prefixes].get[main]||null>
 		- define scripts <script[npc_interrupt_config].data_key[scripts]||null>
+		- define loaded <list[]>
 
 		##################################
 		# |------- script check -------| #
 		##################################
 		- if not ( <[scripts].equals[null]> ):
-			- define loaded <list[]>
 			- foreach <[scripts]> as:script:
 				- if ( <[script].equals[<empty>]> ) || ( <[script].equals[null]> ) || ( not <script[<[script]>].exists> ):
 					- foreach next
@@ -346,12 +403,9 @@ npc_interrupt_dependency_check:
 		#######################################
 		# |------- set default flags -------| #
 		#######################################
-		- if not ( <npc.has_flag[type]> ):
-			- flag <npc> type:<[npc_type]>
-		- if not ( <npc.has_flag[interrupted]> ):
-			- flag <npc> interrupted:false
-		- if not ( <npc.has_flag[ignored]> ):
-			- flag <npc> ignored:!|:<list[]>
+		- flag <npc> type:<[npc_type]>
+		- flag <npc> interrupted:false
+		- flag <npc> ignored:!|:<list[]>
 
 		########################################
 		# |------- set external flags -------| #
@@ -392,4 +446,5 @@ npc_interrupt_dependency_check:
 
 
 # | ---------------------------------------------- NPC INTERRUPT | COMMANDS ---------------------------------------------- | #
+
 
