@@ -1,4 +1,4 @@
 
-# | -------------- Htools Denizen Scripts -------------- | #Cancel changes
+# | -------------- Htools Denizen Scripts -------------- | #
 
 A collection of Denizen scripts under the Htools umbrella.
