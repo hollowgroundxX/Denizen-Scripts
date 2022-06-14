@@ -28,7 +28,7 @@ npc_interrupt_handlers:
 						- if ( <player.gamemode.equals[spectator]> || <player.has_effect[INVISIBILITY]> ) && ( not <npc.flag[ignored].contains[<player>]> ):
 							- flag <npc> ignored:->:<player>
 						- else:
-							- wait <script[citizens_editor_config].data_key[interrupt.settings].get[interrupt-delay]||1s>
+							- wait <server.flag[citizens_editor.settings.interrupt.settings.interrupt-delay]||1s>
 							# |------- flag data -------| #
 							- define type <npc.flag[type]>
 							- define interrupted <npc.flag[interrupted]>
@@ -47,13 +47,13 @@ npc_interrupt_handlers:
 									- case fishing:
 										- fish stop
 										- flag <npc> interrupted:true
-							- customevent id:npc_interrupt_proximity_event
+							- customevent id:npc_interrupt_proximity_debug_event
 		
 		on player quits:
 			- ratelimit <player> 1t
 			# |------- proximity check -------| #
 			- define in_range <player.location.find_npcs_within[5]>
-			- if not ( <[in_range].is_empty> ) && ( not <player.has_flag[npce_fishing_select_mode]> ):
+			- if not ( <[in_range].is_empty> ) && ( not <player.has_flag[citizens_editor.selection_mode]> ):
 				- foreach <[in_range]> as:npc:
 					- adjust <queue> linked_npc:<[npc]>
 					# |------- dependency check -------| #
@@ -62,7 +62,7 @@ npc_interrupt_handlers:
 						- if ( <npc.flag[ignored].contains[<player>]> ):
 							- flag <npc> ignored:<-:<player>
 						- else:
-							- wait <script[citizens_editor_config].data_key[interrupt.settings].get[interrupt-delay]||1s>
+							- wait <server.flag[citizens_editor.settings.interrupt.settings.interrupt-delay]||1s>
 							# |------- flag data -------| #
 							- define type <npc.flag[type]>
 							- define interrupted <npc.flag[interrupted]>
@@ -83,13 +83,13 @@ npc_interrupt_handlers:
 										- fish <npc.cursor_on>
 										- flag <npc> interrupted:false
 
-		on player flagged:npce_fishing_select_mode quits:
+		on player flagged:citizens_editor.selection_mode quits:
 			- ratelimit <player> 1t
 			# |------- flag check -------| #
-			- if ( <player.has_flag[npce_fishing_select_mode].if_null[false]> ):
+			- if ( <player.has_flag[citizens_editor.selection_mode].if_null[false]> ):
 				# |------- event data -------| #
-				- adjust <queue> linked_npc:<player.flag[npce_fishing_select_mode]>
-				- define prefix <script[citizens_editor_config].parsed_key[prefixes].get[main]||null>
+				- adjust <queue> linked_npc:<player.flag[citizens_editor.selection_mode]>
+				- define prefix <server.flag[citizens_editor.settings.prefixes.main]||null>
 				# |------- cancel queue -------| #
 				- foreach <script[npc_interrupt_fishing].queues> as:queue:
 					- if ( <[queue].player> == <player> ):
@@ -97,7 +97,7 @@ npc_interrupt_handlers:
 						- flag <npc> type:!
 						- flag <npc> interrupted:!
 						- flag <npc> ignored:!
-						- flag <player> npce_fishing_select_mode:!
+						- flag <player> citizens_editor.selection_mode:!
 						- lookclose <npc> true range:5
 						- bossbar remove id:npc_interrupt_fishermen
 						- assignment remove script:<[queue].script.name> to:<npc>
@@ -105,13 +105,13 @@ npc_interrupt_handlers:
 		#####################################
 		# |------- gamemode events -------| #
 		#####################################
-		after player flagged:npce_fishing_select_mode changes gamemode to spectator:
+		after player flagged:citizens_editor.selection_mode changes gamemode to spectator:
 			- ratelimit <player> 1t
 			# |------- flag check -------| #
-			- if ( <player.has_flag[npce_fishing_select_mode].if_null[false]> ):
+			- if ( <player.has_flag[citizens_editor.selection_mode].if_null[false]> ):
 				# |------- event data -------| #
-				- adjust <queue> linked_npc:<player.flag[npce_fishing_select_mode]>
-				- define prefix <script[citizens_editor_config].parsed_key[prefixes].get[main]||null>
+				- adjust <queue> linked_npc:<player.flag[citizens_editor.selection_mode]>
+				- define prefix <server.flag[citizens_editor.settings.prefixes.main]||null>
 				# |------- cancel queue -------| #
 				- foreach <script[npc_interrupt_fishing].queues> as:queue:
 					- if ( <[queue].player> == <player> ):
@@ -119,7 +119,7 @@ npc_interrupt_handlers:
 						- flag <npc> type:!
 						- flag <npc> interrupted:!
 						- flag <npc> ignored:!
-						- flag <player> npce_fishing_select_mode:!
+						- flag <player> citizens_editor.selection_mode:!
 						- lookclose <npc> true range:5
 						- bossbar remove id:npc_interrupt_fishermen
 						- narrate "<[prefix]> <&c>Fishing location selection <&f>cancelled<&c>."
@@ -129,7 +129,7 @@ npc_interrupt_handlers:
 			- ratelimit <player> 1t
 			# |------- proximity check -------| #
 			- define in_range <player.location.find_npcs_within[5]>
-			- if not ( <[in_range].is_empty> ) && ( not <player.has_flag[npce_fishing_select_mode]> ):
+			- if not ( <[in_range].is_empty> ) && ( not <player.has_flag[citizens_editor.selection_mode]> ):
 				- foreach <[in_range]> as:npc:
 					- adjust <queue> linked_npc:<[npc]>
 					# |------- dependency check -------| #
@@ -137,7 +137,7 @@ npc_interrupt_handlers:
 						# |------- ignored check -------| #
 						- if not ( <npc.flag[ignored].contains[<player>]> ):
 							- flag <npc> ignored:->:<player>
-						- wait <script[citizens_editor_config].data_key[interrupt.settings].get[interrupt-delay]||1s>
+						- wait <server.flag[citizens_editor.settings.interrupt.settings.interrupt-delay]||1s>
 						# |------- flag data -------| #
 						- define type <npc.flag[type]>
 						- define interrupted <npc.flag[interrupted]>
@@ -157,7 +157,7 @@ npc_interrupt_handlers:
 								- case fishing:
 									- fish <npc.cursor_on>
 									- flag <npc> interrupted:false
-						- customevent id:npc_interrupt_proximity_event
+						- customevent id:npc_interrupt_proximity_debug_event
 
 		after player changes gamemode to survival||adventure||creative:
 			- ratelimit <player> 1t
@@ -171,7 +171,7 @@ npc_interrupt_handlers:
 						# |------- ignored check -------| #
 						- if ( <npc.flag[ignored].contains[<player>]> ):
 							- flag <npc> ignored:<-:<player>
-						- wait <script[citizens_editor_config].data_key[interrupt.settings].get[interrupt-delay]||1s>
+						- wait <server.flag[citizens_editor.settings.interrupt.settings.interrupt-delay]||1s>
 						# |------- flag data -------| #
 						- define type <npc.flag[type]>
 						- define interrupted <npc.flag[interrupted]>
@@ -190,20 +190,20 @@ npc_interrupt_handlers:
 								- case fishing:
 									- fish stop
 									- flag <npc> interrupted:true
-						- customevent id:npc_interrupt_proximity_event
+						- customevent id:npc_interrupt_proximity_debug_event
 
 		###################################
 		# |------- effect events -------| #
 		###################################
-		after player flagged:npce_fishing_select_mode consumes potion:
+		after player flagged:citizens_editor.selection_mode consumes potion:
 			- ratelimit <player> 1t
 			# |------- validate effect -------| #
 			- if <player.has_effect[INVISIBILITY]>:
 				# |------- flag check -------| #
-				- if ( <player.has_flag[npce_fishing_select_mode].if_null[false]> ):
+				- if ( <player.has_flag[citizens_editor.selection_mode].if_null[false]> ):
 					# |------- event data -------| #
-					- adjust <queue> linked_npc:<player.flag[npce_fishing_select_mode]>
-					- define prefix <script[citizens_editor_config].parsed_key[prefixes].get[main]||null>
+					- adjust <queue> linked_npc:<player.flag[citizens_editor.selection_mode]>
+					- define prefix <server.flag[citizens_editor.settings.prefixes.main]||null>
 					# |------- cancel queue -------| #
 					- foreach <script[npc_interrupt_fishing].queues> as:queue:
 						- if ( <[queue].player> == <player> ):
@@ -211,7 +211,7 @@ npc_interrupt_handlers:
 							- flag <npc> type:!
 							- flag <npc> interrupted:!
 							- flag <npc> ignored:!
-							- flag <player> npce_fishing_select_mode:!
+							- flag <player> citizens_editor.selection_mode:!
 							- lookclose <npc> true range:5
 							- bossbar remove id:npc_interrupt_fishermen
 							- narrate "<[prefix]> <&c>Fishing location selection <&f>cancelled<&c>."
@@ -223,7 +223,7 @@ npc_interrupt_handlers:
 			- if <player.has_effect[INVISIBILITY]>:
 				# |------- proximity check -------| #
 				- define in_range <player.location.find_npcs_within[5]>
-				- if not ( <[in_range].is_empty> ) && ( not <player.has_flag[npce_fishing_select_mode]> ):
+				- if not ( <[in_range].is_empty> ) && ( not <player.has_flag[citizens_editor.selection_mode]> ):
 					- foreach <[in_range]> as:npc:
 						- adjust <queue> linked_npc:<[npc]>
 						# |------- dependency check -------| #
@@ -231,7 +231,7 @@ npc_interrupt_handlers:
 							# |------- ignored check -------| #
 							- if not ( <npc.flag[ignored].contains[<player>]> ):
 								- flag <npc> ignored:->:<player>
-							- wait <script[citizens_editor_config].data_key[interrupt.settings].get[interrupt-delay]||1s>
+							- wait <server.flag[citizens_editor.settings.interrupt.settings.interrupt-delay]||1s>
 							# |------- flag data -------| #
 							- define type <npc.flag[type]>
 							- define interrupted <npc.flag[interrupted]>
@@ -251,7 +251,7 @@ npc_interrupt_handlers:
 									- case fishing:
 										- fish <npc.cursor_on>
 										- flag <npc> interrupted:false
-							- customevent id:npc_interrupt_proximity_event
+							- customevent id:npc_interrupt_proximity_debug_event
 
 		after player potion effects cleared|removed:
 			- ratelimit <player> 1t
@@ -265,7 +265,7 @@ npc_interrupt_handlers:
 						# |------- ignored check -------| #
 						- if ( <npc.flag[ignored].contains[<player>]> ):
 							- flag <npc> ignored:<-:<player>
-						- wait <script[citizens_editor_config].data_key[interrupt.settings].get[interrupt-delay]||1s>
+						- wait <server.flag[citizens_editor.settings.interrupt.settings.interrupt-delay]||1s>
 						# |------- flag data -------| #
 						- define type <npc.flag[type]>
 						- define interrupted <npc.flag[interrupted]>
@@ -284,17 +284,17 @@ npc_interrupt_handlers:
 								- case fishing:
 									- fish stop
 									- flag <npc> interrupted:true
-						- customevent id:npc_interrupt_proximity_event
+						- customevent id:npc_interrupt_proximity_debug_event
 
 		###################################
 		# |------- custom events -------| #
 		###################################
-		on custom event id:npc_interrupt_proximity_event:
+		on custom event id:npc_interrupt_proximity_debug_event:
 			# |------- interrupt data -------| #
-			- define prefix <script[citizens_editor_config].parsed_key[prefixes].get[proximity]||null>
+			- define prefix <&7>[<&b><&l>NPC.<npc.id><&7>]
 			- define permission <player.has_permission[<script[citizens_editor_config].data_key[permissions].get[use-command]>].global.if_null[false]>
 			# |------- view npc interrupt data -------| #
-			- if ( <player.flag[npce_debug_mode].if_null[false]> ):
+			- if ( <player.flag[citizens_editor.debug_mode].if_null[false]> ):
 				- if ( <[permission]> ):
 					- if ( <npc.has_flag[type]> ) || ( <npc.has_flag[interrupted]> ) || ( <npc.has_flag[ignored]> ):
 						- narrate "<&nl><[prefix]> <&f>Type: <&b><npc.flag[type]>"
