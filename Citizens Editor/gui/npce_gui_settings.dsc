@@ -241,7 +241,7 @@ citizens_editor_settings_handlers:
                                     - flag server <[target]>:<[input].parsed>
                                     - narrate "<[prefix]> <&f>Main prefix updated to <[input].parsed>"
                                 # |------- validate inventories -------| #
-                                - inject citizens_editor_validate_guis
+                                - inject citizens_editor_validate_gui
                     # |------- clear input data -------| #
                     - if ( <player.has_flag[citizens_editor.awaiting_input]> ):
                         - flag <player> citizens_editor.awaiting_input:!
@@ -277,7 +277,7 @@ citizens_editor_settings_handlers:
                                     - flag server <[target]>:<[input].parsed>
                                     - narrate "<[prefix]> <&f>Debug prefix updated to <[input].parsed>"
                                 # |------- validate inventories -------| #
-                                - inject citizens_editor_validate_guis
+                                - inject citizens_editor_validate_gui
                     # |------- clear input data -------| #
                     - if ( <player.has_flag[citizens_editor.awaiting_input]> ):
                         - flag <player> citizens_editor.awaiting_input:!
@@ -313,7 +313,7 @@ citizens_editor_settings_handlers:
                                     - flag server <[target]>:<[input]>
                                     - narrate "<[prefix]> <&f>Npc prefix updated to <[input].parsed.replace_text[npc.id].with[<&lt>npc.id<&gt>].if_null[<[input]>]>"
                                 # |------- validate inventories -------| #
-                                - inject citizens_editor_validate_guis
+                                - inject citizens_editor_validate_gui
                     # |------- clear input data -------| #
                     - if ( <player.has_flag[citizens_editor.awaiting_input]> ):
                         - flag <player> citizens_editor.awaiting_input:!
