@@ -109,7 +109,7 @@ citizens_editor_config:
 	interface:
 		settings:
 			gui-titles:
-				main-menu: '<&8><&l>Citizens Editor'
+				main-menu: "<&8><&l>Citizens Editor"
 				settings-page: "<&8><&l>Editor -<&gt> <&8><&l>Settings"
 				prefixes-page: "<&8><&l>Settings -<&gt> <&8><&l>Prefixes"
 				interrupt-page: "<&8><&l>Settings -<&gt> <&8><&l>Interrupt"
