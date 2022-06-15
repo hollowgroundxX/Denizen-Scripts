@@ -101,43 +101,53 @@ display_item_command:
 					- if ( <[duration].is_integer> ) && ( <[duration]> != null ):
 						- if ( <[duration]> <= <[max_length]> ):
 							- flag <player> display_duration:<[duration]> expire:<[timeout]>s
+							- define count <[timeout]>
+							- define ticks 0
 							- define timeout <[timeout].mul_int[20]>
-							- bossbar create id:display_item title:<&d>Display<&sp>Mode:<&sp><&sp><&a>Enabled progress:1 color:purple style:solid
 						- else:
 							- narrate "<[prefix]> <&f>The maximum <&b>duration <&f>allowed is <&b><[max_length]> <&f>seconds."
 							- stop
 					- else:
 						- narrate "<[prefix]> <&f>Duration must be an <&b>integer <&f>for command <&b>/display."
 						- stop
-					# |------- select location -------| #
-					- while ( true ):
-						- if ( <player.has_flag[display_duration]> ) && ( <[loop_index]> <= <[timeout]> ):
-							- define valid false
-							- define location <player.cursor_on_solid[5].if_null[null]>
-							- if ( <[location].equals[null]> ):
+					- if ( <[timeout].is_integer> ):
+						# |------- select location -------| #
+						- while ( true ):
+							- define ticks:++
+							# |------- display countdown -------| #
+							- if ( <[loop_index]> == 1 ):
+								- bossbar create id:display_item title:<&f><&l>Display<&sp>Item<&sp><&d><&l>-<&sp><&a><&l><[count]><&sp><&f><&l>seconds progress:1 color:purple
+							- if ( <[ticks]> == 20 ):
+								- bossbar update id:display_item title:<&f><&l>Display<&sp>Item<&sp><&d><&l>-<&sp><&a><&l><[count]><&sp><&f><&l>seconds progress:1 color:purple
+								- define count:--
+								- define ticks 0
+							- if ( <player.has_flag[display_duration]> ) && ( <[loop_index]> <= <[timeout]> ):
+								- define valid false
+								- define location <player.cursor_on_solid[5].if_null[null]>
+								- if ( <[location].equals[null]> ):
+									- wait 1t
+									- while next
+								# |------- validate location -------| #
+								- while ( true ):
+									- if ( <[loop_index]> <= <[max_height]> ):
+										- define above <[location].above>
+										- if ( <[above].material> == <material[air]> ) || ( <[above].material> == <material[void_air]> ):
+											- define valid true
+											- while stop
+										- else:
+											- define location <[above]>
+											- while next
+									- else:
+										- while stop
+								# |------- display location -------| #
+								- if ( <[valid]> ):
+									- debugblock <[location].above> color:green alpha:0.75 d:2t
 								- wait 1t
 								- while next
-							# |------- validate location -------| #
-							- while ( true ):
-								- if ( <[loop_index]> <= <[max_height]> ):
-									- define above <[location].above>
-									- if ( <[above].material> == <material[air]> ) || ( <[above].material> == <material[void_air]> ):
-										- define valid true
-										- while stop
-									- else:
-										- define location <[above]>
-										- while next
-								- else:
-									- while stop
-							# |------- display location -------| #
-							- if ( <[valid]> ):
-								- debugblock <[location].above> color:green alpha:0.75 d:2t
-							- wait 1t
-							- while next
-						- else:
-							- while stop
-					# |------- command cleanup -------| #
-					- bossbar remove id:display_item
+							- else:
+								- while stop
+						# |------- command cleanup -------| #
+						- bossbar remove id:display_item
 				- else:
 					- narrate "<[prefix]> <&c>You are already <&f>displaying <&c>an item."
 					- stop
