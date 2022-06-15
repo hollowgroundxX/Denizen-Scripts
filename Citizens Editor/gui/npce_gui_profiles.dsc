@@ -11,19 +11,16 @@ citizens_editor_profiles_gui:
 	######################################
     type: inventory
     debug: true
-    data:
-        errors:
-            invalid-skull: <item[barrier].with[display=<&c><&l>Invalid skull uuid or texture]>
     inventory: CHEST
-    title: <&8><&l>Profile Editor
+    title: <server.flag[citizens_editor.settings.interface.settings.gui-titles.profiles-page].parsed>
     gui: true
     definitions:
         placeholder: <item[structure_void].with[display=<&d><&l>Placeholder]>
-        corner-fill: <item[<script[citizens_editor_config].data_key[interface.materials].get[corner-fill]||white_stained_glass_pane>].with[display=<&d> <empty>]>
-        edge-fill: <item[<script[citizens_editor_config].data_key[interface.materials].get[edge-fill]||purple_stained_glass_pane>].with[display=<&d> <empty>]>
-        center-fill: <item[<script[citizens_editor_config].data_key[interface.materials].get[center-fill]||gray_stained_glass_pane>].with[display=<&d> <empty>]>
-        next-page: <item[player_head].with_flag[npce-gui-button:next-page].with[display=<&d><&l>Next;skull_skin=<script[citizens_editor_config].data_key[interface.skulls].get[next-page]||<script[citizens_editor_profiles_gui].data_key[data.errors].get[invalid-skull]>>]>
-        previous-page: <item[player_head].with_flag[npce-gui-button:previous-page].with[display=<&d><&l>Previous;skull_skin=<script[citizens_editor_config].data_key[interface.skulls].get[previous-page]||<script[citizens_editor_profiles_gui].data_key[data.errors].get[invalid-skull]>>]>
+        corner-fill: <item[<server.flag[citizens_editor.settings.interface.settings.gui-materials].get[corner-fill]||white_stained_glass_pane>].with[display=<&d> <empty>]>
+        edge-fill: <item[<server.flag[citizens_editor.settings.interface.settings.gui-materials].get[edge-fill]||purple_stained_glass_pane>].with[display=<&d> <empty>]>
+        center-fill: <item[<server.flag[citizens_editor.settings.interface.settings.gui-materials].get[center-fill]||gray_stained_glass_pane>].with[display=<&d> <empty>]>
+        next-page: <item[player_head].with_flag[npce-gui-button:next-page].with[display=<&d><&l>Next;skull_skin=<server.flag[citizens_editor.settings.interface.settings.gui-skulls.next-page]||<item[<server.flag[citizens_editor.settings.interface.settings.gui-materials.invalid.material]>].with[display=<server.flag[citizens_editor.settings.interface.settings.gui-materials.invalid.title]>]>>]>
+        previous-page: <item[player_head].with_flag[npce-gui-button:previous-page].with[display=<&d><&l>Previous;skull_skin=<server.flag[citizens_editor.settings.interface.settings.gui-skulls.previous-page]||<item[<server.flag[citizens_editor.settings.interface.settings.gui-materials.invalid.material]>].with[display=<server.flag[citizens_editor.settings.interface.settings.gui-materials.invalid.title]>]>>]>
     slots:
         - [corner-fill] [edge-fill] [edge-fill] [edge-fill] [edge-fill] [edge-fill] [edge-fill] [edge-fill] [corner-fill]
         - [edge-fill] [center-fill] [center-fill] [center-fill] [center-fill] [center-fill] [center-fill] [center-fill] [edge-fill]
@@ -51,7 +48,7 @@ citizens_editor_profiles_handlers:
         after player left clicks item_flagged:npce-gui-button in citizens_editor_profiles_gui|npce_profiles_page:
             - ratelimit <player> 1t
             # |------- event data -------| #
-            - define prefix <script[citizens_editor_config].parsed_key[prefixes].get[main]>
+            - define prefix <server.flag[citizens_editor.settings.prefixes.main]>
             - define current <player.flag[citizens_editor.gui.current].if_null[npce_profiles_page]>
             - define next <player.flag[citizens_editor.gui.next].if_null[npce_profiles_page]>
             - define previous <player.flag[citizens_editor.gui.previous].if_null[npce_profiles_page]>
@@ -66,6 +63,8 @@ citizens_editor_profiles_handlers:
                         # |------- open previous gui -------| #
                         - define gui_name <[previous]>
                         - inject citizens_editor_open_gui
+                    - else:
+                        - playsound <player> sound:UI_BUTTON_CLICK pitch:1
                 - case next-page:
                     - if ( <[current]> != <[next]> ):
                         # |------- adjust navigation flags -------| #
@@ -74,6 +73,8 @@ citizens_editor_profiles_handlers:
                         # |------- open next gui -------| #
                         - define gui_name <[next]>
                         - inject citizens_editor_open_gui
+                    - else:
+                        - playsound <player> sound:UI_BUTTON_CLICK pitch:1
 
 
 

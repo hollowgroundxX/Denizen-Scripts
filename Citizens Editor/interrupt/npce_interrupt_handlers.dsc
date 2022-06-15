@@ -28,7 +28,7 @@ npc_interrupt_handlers:
 						- if ( <player.gamemode.equals[spectator]> || <player.has_effect[INVISIBILITY]> ) && ( not <npc.flag[ignored].contains[<player>]> ):
 							- flag <npc> ignored:->:<player>
 						- else:
-							- wait <server.flag[citizens_editor.settings.interrupt.settings.interrupt-delay]||1s>
+							- wait <server.flag[citizens_editor.settings.editor.interrupt-event.interrupt-delay]||1s>
 							# |------- flag data -------| #
 							- define type <npc.flag[type]>
 							- define interrupted <npc.flag[interrupted]>
@@ -62,12 +62,12 @@ npc_interrupt_handlers:
 						- if ( <npc.flag[ignored].contains[<player>]> ):
 							- flag <npc> ignored:<-:<player>
 						- else:
-							- wait <server.flag[citizens_editor.settings.interrupt.settings.interrupt-delay]||1s>
+							- wait <server.flag[citizens_editor.settings.editor.interrupt-event.interrupt-delay]||1s>
 							# |------- flag data -------| #
 							- define type <npc.flag[type]>
 							- define interrupted <npc.flag[interrupted]>
 							- define ignored <npc.flag[ignored]>
-							- define nearby <npc.location.find_players_within[5]>
+							- define nearby <npc.location.find_players_within[4]>
 							# |------- state check -------| #
 							- if ( <[interrupted].equals[true]> && <[nearby].exclude[<[ignored]>].size.equals[0]> ) || ( <[interrupted].equals[true]> ) && ( <[ignored].is_empty> && <[nearby].is_empty> ):
 								# |------- resume npc -------| #
@@ -137,12 +137,12 @@ npc_interrupt_handlers:
 						# |------- ignored check -------| #
 						- if not ( <npc.flag[ignored].contains[<player>]> ):
 							- flag <npc> ignored:->:<player>
-						- wait <server.flag[citizens_editor.settings.interrupt.settings.interrupt-delay]||1s>
+						- wait <server.flag[citizens_editor.settings.editor.interrupt-event.interrupt-delay]||1s>
 						# |------- flag data -------| #
 						- define type <npc.flag[type]>
 						- define interrupted <npc.flag[interrupted]>
 						- define ignored <npc.flag[ignored]>
-						- define nearby <npc.location.find_players_within[5]>
+						- define nearby <npc.location.find_players_within[4]>
 						# |------- state check -------| #
 						- if ( <[interrupted].equals[true]> && <[nearby].exclude[<[ignored]>].size.equals[0]> ) || ( <[interrupted].equals[true]> ) && ( <[ignored].is_empty> && <[nearby].is_empty> ):
 							# |------- resume npc -------| #
@@ -171,7 +171,7 @@ npc_interrupt_handlers:
 						# |------- ignored check -------| #
 						- if ( <npc.flag[ignored].contains[<player>]> ):
 							- flag <npc> ignored:<-:<player>
-						- wait <server.flag[citizens_editor.settings.interrupt.settings.interrupt-delay]||1s>
+						- wait <server.flag[citizens_editor.settings.editor.interrupt-event.interrupt-delay]||1s>
 						# |------- flag data -------| #
 						- define type <npc.flag[type]>
 						- define interrupted <npc.flag[interrupted]>
@@ -231,12 +231,12 @@ npc_interrupt_handlers:
 							# |------- ignored check -------| #
 							- if not ( <npc.flag[ignored].contains[<player>]> ):
 								- flag <npc> ignored:->:<player>
-							- wait <server.flag[citizens_editor.settings.interrupt.settings.interrupt-delay]||1s>
+							- wait <server.flag[citizens_editor.settings.editor.interrupt-event.interrupt-delay]||1s>
 							# |------- flag data -------| #
 							- define type <npc.flag[type]>
 							- define interrupted <npc.flag[interrupted]>
 							- define ignored <npc.flag[ignored]>
-							- define nearby <npc.location.find_players_within[5]>
+							- define nearby <npc.location.find_players_within[4]>
 							# |------- state check -------| #
 							- if ( <[interrupted].equals[true]> && <[nearby].exclude[<[ignored]>].size.equals[0]> ) || ( <[interrupted].equals[true]> ) && ( <[ignored].is_empty> && <[nearby].is_empty> ):
 								# |------- resume npc -------| #
@@ -265,7 +265,7 @@ npc_interrupt_handlers:
 						# |------- ignored check -------| #
 						- if ( <npc.flag[ignored].contains[<player>]> ):
 							- flag <npc> ignored:<-:<player>
-						- wait <server.flag[citizens_editor.settings.interrupt.settings.interrupt-delay]||1s>
+						- wait <server.flag[citizens_editor.settings.editor.interrupt-event.interrupt-delay]||1s>
 						# |------- flag data -------| #
 						- define type <npc.flag[type]>
 						- define interrupted <npc.flag[interrupted]>
@@ -291,7 +291,7 @@ npc_interrupt_handlers:
 		###################################
 		on custom event id:npc_interrupt_proximity_debug_event:
 			# |------- interrupt data -------| #
-			- define prefix <&7>[<&b><&l>NPC.<npc.id><&7>]
+			- define prefix <server.flag[citizens_editor.settings.prefixes.npc].parsed||null>
 			- define permission <player.has_permission[<script[citizens_editor_config].data_key[permissions].get[use-command]>].global.if_null[false]>
 			# |------- view npc interrupt data -------| #
 			- if ( <player.flag[citizens_editor.debug_mode].if_null[false]> ):

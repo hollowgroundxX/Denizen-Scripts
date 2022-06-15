@@ -13,6 +13,7 @@ citizens_editor_validate_plugins:
 	debug: false
 	definitions: prefix|plugins
 	script:
+		- ratelimit <player> 1t
 		# |------- define data -------| #
 		- define plugins <server.flag[citizens_editor.settings.dependencies.plugins]>
 		- define loaded <list[]>
@@ -31,18 +32,6 @@ citizens_editor_validate_plugins:
 		
 		# |------- set loaded plugins -------| #
 		- flag server citizens_editor.dependencies.plugins:<[loaded]>
-		
-		# |------- set permissions plugin -------| #
-		- foreach <[loaded]> as:plugin:
-			- choose <[plugin]>:
-				- case default:
-					- while next
-				- case UltraPermissions:
-					- flag server citizens_editor.permissions_handler:<[plugin]>
-					- foreach stop
-				- case LuckPerms:
-					- flag server citizens_editor.permissions_handler:<[plugin]>
-					- foreach stop
 
 
 
@@ -58,6 +47,7 @@ citizens_editor_validate_scripts:
 	debug: false
 	definitions: prefix|plugins
 	script:
+		- ratelimit <player> 1t
 		# |------- define data -------| #
 		- define scripts <server.flag[citizens_editor.settings.dependencies.scripts]||<list[]>>
 		- define loaded <list[]>
@@ -75,7 +65,7 @@ citizens_editor_validate_scripts:
 					- else:
 						- announce to_console "<[prefix]> -<&gt> <&lb>Validate-Scripts<&rb> - The script '<[script]>' could not be located and was subsequently skipped."
 		
-		# |------- set loaded plugins -------| #
+		# |------- set loaded scripts -------| #
 		- flag server citizens_editor.dependencies.scripts:<[loaded]>
 
 
@@ -84,57 +74,62 @@ citizens_editor_validate_scripts:
 
 
 
-citizens_editor_validate_data:
+citizens_editor_validate_dependencies:
 	#################################
 	# |------- task script -------| #
 	#################################
 	type: task
 	debug: false
 	script:
+		- ratelimit <player> 1t
 		# |------- container check -------| #
 		- if ( not <server.has_flag[citizens_editor]> ):
 			- flag server citizens_editor:<map[]>
 		- if ( not <player.has_flag[citizens_editor]> ):
 			- flag <player> citizens_editor:<map[]>
-		# |------- flag check -------| #
+		# |------- sub-container check -------| #
 		- if ( not <player.has_flag[citizens_editor.debug_mode]> ):
 			- flag <player> citizens_editor.debug_mode:false
 		- if ( not <server.has_flag[citizens_editor.inventories]> ):
 			- flag server citizens_editor.inventories:<list[]>
+		# |------- reset flags -------| #
+		- if ( <player.has_flag[citizens_editor.awaiting_dialog]> ):
+			- flag <player> citizens_editor.awaiting_dialog:!
+		- if ( <player.has_flag[citizens_editor.awaiting_input]> ):
+			- flag <player> citizens_editor.awaiting_input:!
+		- if ( <player.has_flag[citizens_editor.received_input]> ):
+			- flag <player> citizens_editor.received_input:!
 		- if ( not <server.has_flag[citizens_editor.settings]> ):
 			- definemap default_settings:
 				prefixes:
 					main: <script[citizens_editor_config].parsed_key[prefixes].get[main]>
 					debug: <script[citizens_editor_config].parsed_key[prefixes].get[debug]>
-				permissions:
-					use-command: <script[citizens_editor_config].data_key[permissions].get[use-command]>
-				interface:
-					materials:
-						corner-fill: <script[citizens_editor_config].data_key[interface.materials].get[corner-fill]>
-						edge-fill: <script[citizens_editor_config].data_key[interface.materials].get[edge-fill]>
-						center-fill: <script[citizens_editor_config].data_key[interface.materials].get[center-fill]>
-					lores:
-						profiles-page: <script[citizens_editor_config].data_key[interface.lores].get[profiles-page]>
-					skulls:
-						next-page: <script[citizens_editor_config].data_key[interface.skulls].get[next-page]>
-						previous-page: <script[citizens_editor_config].data_key[interface.skulls].get[previous-page]>
-				interrupt:
-					settings:
-						interrupt-delay: <script[citizens_editor_config].data_key[interrupt.settings].get[interrupt-delay]>
-					fishermen:
-						select-location-timeout: <script[citizens_editor_config].data_key[interrupt.fishermen].get[select-location-timeout]>
-					navigating:
-						placeholder: <script[citizens_editor_config].data_key[interrupt.navigating].get[placeholder]>
-				dependencies:
-					plugins: <script[citizens_editor_config].data_key[dependencies.plugins]||null>
-					scripts: <script[citizens_editor_config].data_key[dependencies.scripts]||null>
-
+					npc: <script[citizens_editor_config].data_key[prefixes].get[npc]>
+				permissions: <script[citizens_editor_config].data_key[permissions]>
+				editor: <script[citizens_editor_config].data_key[editor]>
+				dependencies: <script[citizens_editor_config].data_key[dependencies]>
+				interface: <script[citizens_editor_config].data_key[interface]>
 			# |------- store settings flag -------| #
 			- flag server citizens_editor.settings:<[default_settings]>
 		
 		# |------- validate dependency data -------| #
 		- inject citizens_editor_validate_plugins
 		- inject citizens_editor_validate_scripts
+		
+		# |------- set permissions handler -------| #
+		- foreach <server.flag[citizens_editor.dependencies.plugins]> as:plugin:
+			- choose <[plugin]>:
+				- case default:
+					- foreach next
+				- case UltraPermissions:
+					- flag server citizens_editor.permissions_handler:<[plugin]>
+					- foreach stop
+				- case LuckPerms:
+					- flag server citizens_editor.permissions_handler:<[plugin]>
+					- foreach stop
+				- case Essentials:
+					- flag server citizens_editor.permissions_handler:<[plugin]>
+					- foreach stop
 
 
 
@@ -142,14 +137,15 @@ citizens_editor_validate_data:
 
 
 
-citizens_editor_validate_guis:
+citizens_editor_validate_gui:
 	#################################
 	# |------- task script -------| #
 	#################################
 	type: task
 	debug: false
-    definitions: prefix|current|next|previous
+    definitions: prefix|gui_name|current|next|previous
 	script:
+		- ratelimit <player> 1t
         # |------- inventory data -------| #
         - define inventories citizens_editor.inventories
 		- definemap guis:
@@ -161,29 +157,27 @@ citizens_editor_validate_guis:
 			npce_gui_page: citizens_editor_inventory_gui
 			npce_profiles_page: citizens_editor_profiles_gui
 		 # |------- build inventories -------| #
-        - foreach <[guis]>:
+        - if ( <[guis]> contains <[gui_name]> ):
             # |------- cached data -------| #
-            - define noted <server.notes[inventories].contains[<inventory[<[key]>]>].if_null[false]>
-            - define flagged <server.flag[<[inventories]>].contains[<[key]>].if_null[false]>
+            - define noted <server.notes[inventories].contains[<inventory[<[gui_name]>]>].if_null[false]>
+            - define flagged <server.flag[<[inventories]>].contains[<[gui_name]>].if_null[false]>
             # |------- presence check -------| #
             - if ( <[flagged]> ) && ( <[noted]> ):
                 # |------- delete inventory -------| #
-                - flag server <[inventories]>:<-:<[key]>
-                - note remove as:<[key]>
+                - flag server <[inventories]>:<-:<[gui_name]>
+                - note remove as:<[gui_name]>
                 # |------- create inventory -------| #
-                - note <inventory[<[value]>]> as:<[key]>
-                - flag server <[inventories]>:->:<[key]>
-                # |------- log message -------| #
-                - narrate "<[prefix]> Inventory.<[key]> refreshed."
+                - note <inventory[<[guis].get[<[gui_name]>]>]> as:<[gui_name]>
+                - flag server <[inventories]>:->:<[gui_name]>
             - else if ( not <[flagged]> ) && ( not <[noted]> ):
                 # |------- create inventory -------| #
-                - note <inventory[<[value]>]> as:<[key]>
-                - flag server <[inventories]>:->:<[key]>
+                - note <inventory[<[guis].get[<[gui_name]>]>]> as:<[gui_name]>
+                - flag server <[inventories]>:->:<[gui_name]>
                 # |------- log message -------| #
-                - narrate "<[prefix]> Inventory.<[key]> successfully cached."
+                - narrate "<[prefix]> Inventory.<[gui_name]> successfully cached."
             - else:
                 # |------- invalid inventory -------| #
-                - narrate "<[prefix]> <&c>The inventory '<[key]>' is not properly cached within the inventories database."
+                - narrate "<[prefix]> <&c>The inventory '<[gui_name]>' is not properly cached within the inventories database."
 
 
 
@@ -200,12 +194,15 @@ citizens_editor_open_gui:
 	definitions: prefix|gui_name|current|next|previous
 	script:
 		- ratelimit <player> 1t
+        # |------- validate inventory -------| #
+		- inject citizens_editor_validate_gui
 		# |------- inventory data -------| #
-        - define noted <server.notes[inventories].contains[<inventory[<[gui_name]>]>].if_null[false]>
+		- define noted <server.notes[inventories].contains[<inventory[<[gui_name]>]>].if_null[false]>
 		- define flagged <server.flag[citizens_editor.inventories].contains[<[gui_name]>].if_null[false]>
 		# |------- inventory check -------| #
 		- if ( <[flagged]> ) && ( <[noted]> ):
 			# |------- open inventory -------| #
+			- playsound <player> sound:UI_BUTTON_CLICK pitch:1
 			- inventory open destination:<[gui_name]>
 			# |------- adjust gui flags -------| #
 			- flag <player> citizens_editor.gui.current:<[gui_name]>
@@ -225,12 +222,16 @@ citizens_editor_open_dialog:
 	definitions: prefix|title|gui_name|current|next|previous
 	script:
 		- ratelimit <player> 1t
+		# |------- validate inventory -------| #
+		- inject citizens_editor_validate_gui
 		# |------- inventory data -------| #
-        - define noted <server.notes[inventories].contains[<inventory[<[gui_name]>]>].if_null[false]>
+		- define noted <server.notes[inventories].contains[<inventory[<[gui_name]>]>].if_null[false]>
 		- define flagged <server.flag[citizens_editor.inventories].contains[<[gui_name]>].if_null[false]>
 		# |------- inventory check -------| #
 		- if ( <[flagged]> ) && ( <[noted]> ):
 			# |------- adjust inventory -------| #
+			- if ( <player.has_flag[citizens_editor.awaiting_dialog]> ):
+				- flag <player> citizens_editor.awaiting_dialog:!
 			- adjust <inventory[<[gui_name]>]> title:<[title]>
 			# |------- open dialog -------| #
 			- inventory open destination:<[gui_name]>
@@ -263,53 +264,56 @@ citizens_editor_open_input_dialog:
                 - case Essentials:
                     - narrate placeholder
         # |------- select data -------| #
-		- define timeout 25
-		- define count <[timeout]>
-		- define ticks 0
-		# |------- close inventory -------| #
-		- inventory close
-        # |------- flag check -------| #
-        - if ( not <player.has_flag[]> ):
-            - flag <player> citizens_editor.awaiting_input:true
-        # |------- awaiting input -------| #
-		- while ( true ):
-			# |------- input data -------| #
-			- define awaiting <player.flag[citizens_editor.awaiting_input].if_null[false]>
-			- define ticks:++
-			# |------- display countdown -------| #
-			- if ( <[loop_index]> == 1 ):
-				- bossbar create id:npce_awaiting_input title:<&b><&l><[message]><&sp><&b><&l>-<&sp><&a><[count]><&sp><&f><&l>seconds progress:0 color:red
-				- title title:<[title]> subtitle:<[sub-title]> stay:1s fade_in:0s fade_out:0s targets:<player>
-			- if ( <[ticks]> == 20 ):
-				- bossbar update id:npce_awaiting_input title:<&b><&l><[message]><&sp><&b><&l>-<&sp><&a><[count]><&sp><&f><&l>seconds progress:0 color:red
-				- title title:<[title]> subtitle:<[sub-title]> stay:1s fade_in:0s fade_out:0s targets:<player>
-				- define count:--
-				- define ticks 0
-			# |------- input check -------| #
-			- if ( <[awaiting]> ) && ( <[loop_index]> <= <[timeout].mul_int[20]> ):
-				- wait 1t
-				- while next
-			- else:
-				# |------- check input -------| #
-				- if ( <player.has_flag[citizens_editor.awaiting_input]> ):
-					- wait 1s
-					- bossbar update id:npce_awaiting_input title:<&b><&l><[message]><&sp><&b><&l>-<&sp><&f><[count]><&sp><&f><&l>seconds progress:0 color:red
+		- define timeout <server.flag[citizens_editor.settings.editor.dialog-event.await-dialog-timeout]||60>
+		- if ( <[timeout].is_integer> ):
+			- define count <[timeout]>
+			- define ticks 0
+			# |------- close inventory -------| #
+			- inventory close
+			# |------- set flag -------| #
+			- flag <player> citizens_editor.awaiting_input:true
+			# |------- awaiting input -------| #
+			- while ( true ):
+				# |------- input data -------| #
+				- define awaiting <player.flag[citizens_editor.awaiting_input].if_null[false]>
+				- define ticks:++
+				# |------- display countdown -------| #
+				- if ( <[loop_index]> == 1 ):
+					- bossbar create id:npce_awaiting_input title:<&b><&l><[message]><&sp><&b><&l>-<&sp><&a><&l><[count]><&sp><&f><&l>seconds progress:0 color:red
 					- title title:<[title]> subtitle:<[sub-title]> stay:1s fade_in:0s fade_out:0s targets:<player>
+				- if ( <[ticks]> == 20 ):
+					- bossbar update id:npce_awaiting_input title:<&b><&l><[message]><&sp><&b><&l>-<&sp><&a><&l><[count]><&sp><&f><&l>seconds progress:0 color:red
+					- title title:<[title]> subtitle:<[sub-title]> stay:1s fade_in:0s fade_out:0s targets:<player>
+					- define count:--
+					- define ticks 0
+				# |------- input check -------| #
+				- if ( <[awaiting]> ) && ( <[loop_index]> <= <[timeout].mul_int[20]> ):
+					- wait 1t
+					- while next
+				- else:
+					# |------- check input -------| #
 					- if ( <player.has_flag[citizens_editor.awaiting_input]> ):
-						- flag <player> citizens_editor.awaiting_input:!
-					- wait 1s
-				# |------- resume discordSRV -------| #
-                - if ( <[discordSRV]> ):
-                    - choose <[perms_handler]>:
-                        - case UltraPermissions:
-                            - execute as_server "upc RemovePlayerPermission <player.name> discordsrv.player" silent
-                        - case LuckPerms:
-                            - narrate placeholder
-                        - case Essentials:
-                            - narrate placeholder
-                # |------- cleanup instructions -------| #
-				- bossbar remove id:npce_awaiting_input
-				- while stop
+						- wait 1s
+						- bossbar update id:npce_awaiting_input title:<&b><&l><[message]><&sp><&b><&l>-<&sp><&f><[count]><&sp><&f><&l>seconds progress:0 color:red
+						- title title:<[title]> subtitle:<[sub-title]> stay:1s fade_in:0s fade_out:0s targets:<player>
+						- if ( <player.has_flag[citizens_editor.awaiting_input]> ):
+							- flag <player> citizens_editor.awaiting_input:!
+						- wait 1s
+					# |------- resume discordSRV -------| #
+					- if ( <[discordSRV]> ):
+						- choose <[perms_handler]>:
+							- case UltraPermissions:
+								- execute as_server "upc RemovePlayerPermission <player.name> discordsrv.player" silent
+							- case LuckPerms:
+								- narrate placeholder
+							- case Essentials:
+								- narrate placeholder
+					# |------- cleanup instructions -------| #
+					- bossbar remove id:npce_awaiting_input
+					- while stop
+		- else:
+			# |------- invalid timeout -------| #
+			- narrate "<[prefix]> <&c>Dialog Cancelled: The setting '<&f>await-input-timeout<&c>' <&c>is not a valid <&f>integer<&c>."
 
 
 

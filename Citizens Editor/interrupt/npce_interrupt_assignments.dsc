@@ -22,10 +22,10 @@ npc_interrupt_navigating:
 			# |------- set triggers -------| #
 			- trigger name:proximity state:true radius:5
 			# |------- proximity check -------| #
-			- define in_range <npc.location.find_players_within[5]>
+			- define in_range <npc.location.find_players_within[4]>
 			- if ( <[in_range].is_empty> ):
 				# |------- resume navigating -------| #
-				- wait <server.flag[citizens_editor.settings.interrupt.settings.interrupt-delay]||1s>
+				- wait <server.flag[citizens_editor.settings.editor.interrupt-event.interrupt-delay]||1s>
 				- resume waypoints
 				- resume activity
 				- if ( <npc.lookclose> ):
@@ -37,7 +37,7 @@ npc_interrupt_navigating:
 				- if ( <player.gamemode.equals[spectator]> || <player.has_effect[INVISIBILITY]> ) && ( not <npc.flag[ignored].contains[<player>]> ):
 					- flag <npc> ignored:->:<player>
 				- else:
-					- wait <server.flag[citizens_editor.settings.interrupt.settings.interrupt-delay]||1s>
+					- wait <server.flag[citizens_editor.settings.editor.interrupt-event.interrupt-delay]||1s>
 					# |------- state check -------| #
 					- if ( <[in_range].exclude[<player>].equals[<npc.flag[ignored]>]> ) && ( not <npc.flag[interrupted]> ):
 						# |------- interrupt navigating -------| #
@@ -69,12 +69,12 @@ npc_interrupt_navigating:
 			- if ( <npc.flag[ignored].contains[<player>]> ):
 				- flag <npc> ignored:<-:<player>
 			- else:
-				- wait <server.flag[citizens_editor.settings.interrupt.settings.interrupt-delay]||1s>
+				- wait <server.flag[citizens_editor.settings.editor.interrupt-event.interrupt-delay]||1s>
 				# |------- flag data -------| #
 				- define type <npc.flag[type]>
 				- define interrupted <npc.flag[interrupted]>
 				- define ignored <npc.flag[ignored]>
-				- define in_range <npc.location.find_players_within[5]>
+				- define in_range <npc.location.find_players_within[4]>
 				# |------- state check -------| #
 				- if ( <[interrupted].equals[true]> && not <[ignored].contains[<player>]> && <[in_range].is_empty> ) || ( <[interrupted].equals[true]> && not <[ignored].contains[<player>]> && <[in_range].equals[<[ignored]>]> ):
 					# |------- resume navigating -------| #
@@ -111,95 +111,99 @@ npc_interrupt_fishing:
 				- flag <npc> interrupted:false
 				- flag <npc> ignored:!|:<list[]>
 				# |------- select data -------| #
-				- define timeout <server.flag[citizens_editor.settings.interrupt.fishermen.select-location-timeout]||null>
-				- define count <[timeout]>
-				- define ticks 0
-				- define valid false
-				- lookclose <npc> true range:15
-				# |------- select location -------| #
-				- flag <player> citizens_editor.selection_mode:<npc>
-				- title title:<&b><&l>Stand<&sp>in<&sp>Water subtitle:<&d><&l>to<&sp>select<&sp>a<&sp>fishing<&sp>location stay:5s fade_in:3s fade_out:3s targets:<player>
-				- while ( true ):
-					# |------- location data -------| #
-					- define location <player.location.if_null[null]>
-					- define nearby <player.location.find_npcs_within[15].contains[<npc>]>
-					- define ticks:++
-					# |------- display countdown -------| #
-					- if ( <[loop_index]> == 1 ):
-						- bossbar create id:npc_interrupt_fishermen players:<player> progress:0 color:green style:solid
-					- if ( <[ticks]> == 20 ):
-						- if ( <[location].material> == <material[water]> ) && ( <[nearby]> ):
-							- bossbar update id:npc_interrupt_fishermen title:<&b><&l>Location:<&sp><&a><&l>valid<&sp><&b><&l>-<&sp><&f><[count]><&sp><&f><&l>seconds progress:1 color:green
+				- define timeout <server.flag[citizens_editor.settings.editor.interrupt-event.select-location-timeout]||null>
+				- if ( <[timeout].is_integer> ):
+					- define count <[timeout]>
+					- define ticks 0
+					- define valid false
+					- lookclose <npc> true range:15
+					# |------- select location -------| #
+					- flag <player> citizens_editor.selection_mode:<npc>
+					- title title:<&b><&l>Stand<&sp>in<&sp>Water subtitle:<&d><&l>to<&sp>select<&sp>a<&sp>fishing<&sp>location stay:5s fade_in:3s fade_out:3s targets:<player>
+					- while ( true ):
+						# |------- location data -------| #
+						- define location <player.location.if_null[null]>
+						- define nearby <player.location.find_npcs_within[15].contains[<npc>]>
+						- define ticks:++
+						# |------- display countdown -------| #
+						- if ( <[loop_index]> == 1 ):
+							- bossbar create id:npc_interrupt_fishermen players:<player> progress:0 color:green style:solid
+						- if ( <[ticks]> == 20 ):
+							- if ( <[location].material> == <material[water]> ) && ( <[nearby]> ):
+								- bossbar update id:npc_interrupt_fishermen title:<&b><&l>Location:<&sp><&a><&l>valid<&sp><&b><&l>-<&sp><&f><[count]><&sp><&f><&l>seconds progress:1 color:green
+							- else:
+								- bossbar update id:npc_interrupt_fishermen title:<&b><&l>Location:<&sp><&c><&l>invalid<&sp><&b><&l>-<&sp><&f><[count]><&sp><&f><&l>seconds progress:0 color:red
+							- define count:--
+							- define ticks 0
+						# |------- cycle check -------| #
+						- if ( not <[valid]> ) && ( <[loop_index]> <= <[timeout].mul_int[20]> ):
+							# |------- validate location -------| #
+							- if ( <[location].equals[null]> ):
+								- wait 1t
+								- while next
+							- else if ( <[location].material> == <material[water]> ):
+								# |------- display location -------| #
+								- debugblock <[location].above> color:green alpha:1.0 d:2t
+								- wait 1t
+								- while next
+							- else:
+								- wait 1t
+								- while next
 						- else:
-							- bossbar update id:npc_interrupt_fishermen title:<&b><&l>Location:<&sp><&c><&l>invalid<&sp><&b><&l>-<&sp><&f><[count]><&sp><&f><&l>seconds progress:0 color:red
-						- define count:--
-						- define ticks 0
-					# |------- cycle check -------| #
-					- if ( not <[valid]> ) && ( <[loop_index]> <= <[timeout].mul_int[20]> ):
-						# |------- validate location -------| #
-						- if ( <[location].equals[null]> ):
-							- wait 1t
-							- while next
-						- else if ( <[location].material> == <material[water]> ):
-							# |------- display location -------| #
-							- debugblock <[location].above> color:green alpha:1.0 d:2t
-							- wait 1t
-							- while next
-						- else:
-							- wait 1t
-							- while next
-					- else:
-						# |------- finalize selection -------| #
-						- if ( <[location].material> == <material[water]> ) && ( <[nearby]> ):
-							- define valid true
+							# |------- finalize selection -------| #
+							- if ( <[location].material> == <material[water]> ) && ( <[nearby]> ):
+								- define valid true
+								- wait 1s
+								- bossbar update id:npc_interrupt_fishermen title:<&b><&l>Location:<&sp><&a><&l>valid<&sp><&b><&l>-<&sp><&f><[count]><&sp><&f><&l>seconds progress:1 color:green
+							- else:
+								- define valid false
+								- wait 1s
+								- bossbar update id:npc_interrupt_fishermen title:<&b><&l>Location:<&sp><&c><&l>invalid<&sp><&b><&l>-<&sp><&f><[count]><&sp><&f><&l>seconds progress:0 color:red
 							- wait 1s
-							- bossbar update id:npc_interrupt_fishermen title:<&b><&l>Location:<&sp><&a><&l>valid<&sp><&b><&l>-<&sp><&f><[count]><&sp><&f><&l>seconds progress:1 color:green
-						- else:
-							- define valid false
-							- wait 1s
-							- bossbar update id:npc_interrupt_fishermen title:<&b><&l>Location:<&sp><&c><&l>invalid<&sp><&b><&l>-<&sp><&f><[count]><&sp><&f><&l>seconds progress:0 color:red
-						- wait 1s
-						- bossbar remove id:npc_interrupt_fishermen
-						- while stop
-				# |------- validation check -------| #
-				- if ( <[valid]> ):
-					# |------- set pose -------| #
-					- pose add id:<[npc_type]> <npc> <npc.location>
-					- execute as_server "npc select <npc.id>" silent
-					- execute as_server "npc pose --default <[npc_type]>" silent
-					# |------- set triggers -------| #
-					- trigger name:proximity state:true radius:5
-					- title title:<&b><&l>Fishing<&sp>Location subtitle:<&a><&l>successfully<&sp>selected stay:3s fade_in:3s fade_out:3s targets:<player>
-					# |------- proximity check -------| #
-					- define in_range <npc.location.find_players_within[5]>
-					- if ( <[in_range].is_empty> ):
-						# |------- resume npc -------| #
-						- wait <server.flag[citizens_editor.settings.interrupt.settings.interrupt-delay]||1s>
-						- fish <npc.cursor_on>
-					- else if not ( <[in_range].is_empty> ):
-						# |------- ignore check -------| #
-						- if ( <player.gamemode.equals[spectator]> || <player.has_effect[INVISIBILITY]> ) && ( not <npc.flag[ignored].contains[<player>]> ):
+							- bossbar remove id:npc_interrupt_fishermen
+							- while stop
+					# |------- validation check -------| #
+					- if ( <[valid]> ):
+						# |------- set pose -------| #
+						- pose add id:<[npc_type]> <npc> <npc.location>
+						- execute as_server "npc select <npc.id>" silent
+						- execute as_server "npc pose --default <[npc_type]>" silent
+						# |------- set triggers -------| #
+						- trigger name:proximity state:true radius:5
+						- title title:<&b><&l>Fishing<&sp>Location subtitle:<&a><&l>successfully<&sp>selected stay:3s fade_in:3s fade_out:3s targets:<player>
+						# |------- proximity check -------| #
+						- define in_range <npc.location.find_players_within[4]>
+						- if ( <[in_range].is_empty> ):
 							# |------- resume npc -------| #
-							- flag <npc> ignored:->:<player>
-							- wait <server.flag[citizens_editor.settings.interrupt.settings.interrupt-delay]||1s>
+							- wait <server.flag[citizens_editor.settings.editor.interrupt-event.interrupt-delay]||1s>
 							- fish <npc.cursor_on>
-						# |------- state check -------| #
-						- else if ( <[in_range].exclude[<player>].equals[<npc.flag[ignored]>]> ) && ( not <npc.flag[interrupted]> ):
-							# |------- interrupt npc -------| #
-							- flag <npc> interrupted:true
-					# |------- assignment cleanup -------| #
-					- flag <player> citizens_editor.selection_mode:!
-					- lookclose <npc> true range:5
-					- customevent id:npc_interrupt_proximity_debug_event
+						- else if not ( <[in_range].is_empty> ):
+							# |------- ignore check -------| #
+							- if ( <player.gamemode.equals[spectator]> || <player.has_effect[INVISIBILITY]> ) && ( not <npc.flag[ignored].contains[<player>]> ):
+								# |------- resume npc -------| #
+								- flag <npc> ignored:->:<player>
+								- wait <server.flag[citizens_editor.settings.editor.interrupt-event.interrupt-delay]||1s>
+								- fish <npc.cursor_on>
+							# |------- state check -------| #
+							- else if ( <[in_range].exclude[<player>].equals[<npc.flag[ignored]>]> ) && ( not <npc.flag[interrupted]> ):
+								# |------- interrupt npc -------| #
+								- flag <npc> interrupted:true
+						# |------- assignment cleanup -------| #
+						- flag <player> citizens_editor.selection_mode:!
+						- lookclose <npc> true range:5
+						- customevent id:npc_interrupt_proximity_debug_event
+					- else:
+						- flag <npc> type:!
+						- flag <npc> interrupted:!
+						- flag <npc> ignored:!
+						- flag <player> citizens_editor.selection_mode:!
+						- lookclose <npc> true range:5
+						- title title:<&b><&l>Invalid<&sp>Location subtitle:<&c><&l>you<&sp>must<&sp>stand<&sp>in<&sp>a<&sp>water<&sp>source stay:3s fade_in:3s fade_out:3s targets:<player>
+						- narrate "<[prefix]> <&c>You were not located in a valid <&f>water <&c>source."
+						- assignment remove script:<script.name>
 				- else:
-					- flag <npc> type:!
-					- flag <npc> interrupted:!
-					- flag <npc> ignored:!
-					- flag <player> citizens_editor.selection_mode:!
-					- lookclose <npc> true range:5
-					- title title:<&b><&l>Invalid<&sp>Location subtitle:<&c><&l>you<&sp>must<&sp>stand<&sp>in<&sp>a<&sp>water<&sp>source stay:3s fade_in:3s fade_out:3s targets:<player>
-					- narrate "<[prefix]> <&c>You were not located in a valid <&f>water <&c>source."
-					- assignment remove script:<script.name>
+					# |------- invalid timeout -------| #
+					- narrate "<[prefix]> <&c>Dialog Cancelled: The setting '<&f>await-choice-timeout<&c>' <&c>is not a valid <&f>integer<&c>."
 			- else:
 				- assignment remove script:<script.name> to:<npc>
 				- narrate "<[prefix]> <&c>You cannot set a <&f>fishermen <&c>assignment while invisible."
@@ -223,12 +227,12 @@ npc_interrupt_fishing:
 			- if ( <npc.flag[ignored].contains[<player>]> ):
 				- flag <npc> ignored:<-:<player>
 			- else:
-				- wait <server.flag[citizens_editor.settings.interrupt.settings.interrupt-delay]||1s>
+				- wait <server.flag[citizens_editor.settings.editor.interrupt-event.interrupt-delay]||1s>
 				# |------- flag data -------| #
 				- define type <npc.flag[type]>
 				- define interrupted <npc.flag[interrupted]>
 				- define ignored <npc.flag[ignored]>
-				- define in_range <npc.location.find_players_within[5]>
+				- define in_range <npc.location.find_players_within[4]>
 				# |------- state check -------| #
 				- if ( <[interrupted].equals[true]> && not <[ignored].contains[<player>]> && <[in_range].is_empty> ) || ( <[interrupted].equals[true]> && not <[ignored].contains[<player>]> && <[in_range].equals[<[ignored]>]> ):
 					# |------- resume fishermen -------| #
