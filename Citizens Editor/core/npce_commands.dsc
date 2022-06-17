@@ -1,7 +1,7 @@
 
 
 
-# | ---------------------------------------------- CITIZENS EDITOR | COMMANDS ---------------------------------------------- | #
+# | ----------------------------------------------  CITIZENS EDITOR | COMMANDS  ---------------------------------------------- | #
 
 
 
@@ -32,25 +32,19 @@ citizens_editor_command:
 		- define source_player <context.source_type.equals[player]>
 		- define first <context.args.get[1]||null>
 		- define second <context.args.get[2]||null>
+		- define app <custom_object[citizens_editor_application]>
 		# |------- source check -------| #
 		- if ( <context.source_type> == player ):
 			# |------- permissions check -------| #
 			- if ( <player.has_permission[<[permission]>].global> ) || ( <[permission]> == <empty> ) || ( <[permission]> == none ) || ( <[permission]> == null ):
-				- if ( not <player.has_flag[citizens_editor.awaiting_input]> ):
+				- if ( not <player.has_flag[citizens_editor.awaiting_input]> ) && ( <player.gamemode> != spectator ):
 					# |------- validate dependencies -------| #
-					- inject citizens_editor_validate_dependencies
+					- inject citizens_editor_validate_command
 					# |------- execute command -------| #
 					- choose <[first]>:
 						- default:
-							# |------- inventory data -------| #
-							- define gui_name npce_main_menu
-							- define current <player.flag[citizens_editor.gui.current].if_null[<[gui_name]>]>
-							- define next <player.flag[citizens_editor.gui.next].if_null[<[gui_name]>]>
-							- define previous <player.flag[citizens_editor.gui.previous].if_null[<[gui_name]>]>
-							# |------- adjust navigation flags -------| #
-							- flag <player> citizens_editor.gui.next:!
-							- flag <player> citizens_editor.gui.previous:!
 							# |------- open main gui -------| #
+							- define gui_name <[app].get_root>
 							- inject citizens_editor_open_gui
 						- case debug --debug d -d --d:
 							# |------- debug toggle -------| #
