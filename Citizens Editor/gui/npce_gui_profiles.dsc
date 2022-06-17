@@ -1,18 +1,18 @@
 
 
 
-# | ---------------------------------------------- CITIZENS EDITOR | INVENTORIES ---------------------------------------------- | #
+# | ----------------------------------------------  CITIZENS EDITOR | INVENTORIES  ---------------------------------------------- | #
 
 
 
-citizens_editor_profiles_gui:
+citizens_editor_profile_editor_gui:
     ######################################
 	# |------- inventory script -------| #
 	######################################
     type: inventory
     debug: true
     inventory: CHEST
-    title: <server.flag[citizens_editor.settings.interface.settings.gui-titles.profiles-page].parsed>
+    title: <server.flag[citizens_editor.settings.interface.settings.gui-titles.profile-editor].parsed>
     gui: true
     definitions:
         placeholder: <item[structure_void].with[display=<&d><&l>Placeholder]>
@@ -35,7 +35,7 @@ citizens_editor_profiles_gui:
 
 
 
-citizens_editor_profiles_handlers:
+citizens_editor_profile_editor_handlers:
     ###################################
 	# |------- event handler -------| #
 	###################################
@@ -45,36 +45,21 @@ citizens_editor_profiles_handlers:
         ##################################
 		# |------- click events -------| #
 		##################################
-        after player left clicks item_flagged:npce-gui-button in citizens_editor_profiles_gui|npce_profiles_page:
+        after player left clicks item_flagged:npce-gui-button in citizens_editor_profile_editor_gui|profile-editor-gui:
             - ratelimit <player> 1t
             # |------- event data -------| #
             - define prefix <server.flag[citizens_editor.settings.prefixes.main]>
-            - define current <player.flag[citizens_editor.gui.current].if_null[npce_profiles_page]>
-            - define next <player.flag[citizens_editor.gui.next].if_null[npce_profiles_page]>
-            - define previous <player.flag[citizens_editor.gui.previous].if_null[npce_profiles_page]>
+            - define current <player.flag[citizens_editor.gui.current]>
+            - define next <player.flag[citizens_editor.gui.next]>
+            - define previous <player.flag[citizens_editor.gui.previous]>
             - define button-id <context.item.flag[npce-gui-button].if_null[null]>
+            - define gui_name <[button-id]>
             # |------- context check -------| #
             - choose <[button-id]>:
                 - case previous-page:
-                    - if ( <[current]> != <[previous]> ):
-                        # |------- adjust navigation flags -------| #
-                        - flag <player> citizens_editor.gui.next:<[current]>
-                        - flag <player> citizens_editor.gui.previous:!
-                        # |------- open previous gui -------| #
-                        - define gui_name <[previous]>
-                        - inject citizens_editor_open_gui
-                    - else:
-                        - playsound <player> sound:UI_BUTTON_CLICK pitch:1
+                    - inject citizens_editor_open_cached_gui
                 - case next-page:
-                    - if ( <[current]> != <[next]> ):
-                        # |------- adjust navigation flags -------| #
-                        - flag <player> citizens_editor.gui.next:!
-                        - flag <player> citizens_editor.gui.previous:<[current]>
-                        # |------- open next gui -------| #
-                        - define gui_name <[next]>
-                        - inject citizens_editor_open_gui
-                    - else:
-                        - playsound <player> sound:UI_BUTTON_CLICK pitch:1
+                    - inject citizens_editor_open_cached_gui
 
 
 

@@ -1,7 +1,7 @@
 
 
 
-# | ---------------------------------------------- CITIZENS EDITOR | INVENTORIES ---------------------------------------------- | #
+# | ----------------------------------------------  CITIZENS EDITOR | INVENTORIES  ---------------------------------------------- | #
 
 
 
@@ -54,14 +54,14 @@ citizens_editor_dialog_handlers:
         ##################################
 		# |------- click events -------| #
 		##################################
-        after player left clicks item_flagged:npce-gui-button in citizens_editor_dialog_gui|npce_dialog:
+        after player left clicks item_flagged:npce-gui-button in citizens_editor_dialog_gui|dialog-gui:
             - ratelimit <player> 1t
             # |------- event data -------| #
             - define prefix <server.flag[citizens_editor.settings.prefixes.main]>
-            - define current <player.flag[citizens_editor.gui.current].if_null[npce_dialog]>
-            - define next <player.flag[citizens_editor.gui.next].if_null[npce_dialog]>
-            - define previous <player.flag[citizens_editor.gui.previous].if_null[npce_dialog]>
-            - define button-id <context.item.flag[npce-gui-button].if_null[null]>
+            - define current <player.flag[citizens_editor.gui.current]>
+            - define next <player.flag[citizens_editor.gui.next]>
+            - define previous <player.flag[citizens_editor.gui.previous]>
+            - define button-id <context.item.flag[npce-gui-button]>
             # |------- context check -------| #
             - choose <[button-id]>:
                 - case confirm:
@@ -69,7 +69,6 @@ citizens_editor_dialog_handlers:
                     - playsound <player> sound:entity_experience_orb_pickup pitch:1
                 - case deny:
                     - flag <player> citizens_editor.awaiting_dialog:false
-                    - playsound <player> sound:UI_BUTTON_CLICK pitch:1
 
 
 
