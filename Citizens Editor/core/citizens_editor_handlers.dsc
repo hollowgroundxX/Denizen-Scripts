@@ -1,11 +1,11 @@
 
 
 
-# | ---------------------------------------------- CITIZENS EDITOR | CORE HANDLERS ---------------------------------------------- | #
+# | ----------------------------------------------  CITIZENS EDITOR | CORE HANDLER  ---------------------------------------------- | #
 
 
 
-citizens_editor_core_handlers:
+citizens_editor_core_handler:
     ###################################
 	# |------- event handler -------| #
 	###################################
@@ -34,12 +34,11 @@ citizens_editor_core_handlers:
 
         after player quit:
             # |------- event data -------| #
-            - define scripts <list[]>
+            - define scripts <list[citizens_editor_inventory_handler]>
             # |------- flag check -------| #
             - if ( <player.has_flag[citizens_editor.awaiting_dialog]> ):
                 # |------- cancel dialog -------| #
                 - flag <player> citizens_editor.awaiting_dialog:!
-                - define scripts:->:citizens_editor_dialog_handlers
             - if ( <player.has_flag[citizens_editor.awaiting_input]> ) || ( <player.has_flag[citizens_editor.received_input]> ):
                 # |------- cancel input -------| #
                 - flag <player> citizens_editor.awaiting_input:!
@@ -60,7 +59,6 @@ citizens_editor_core_handlers:
                             - narrate placeholder
                 # |------- cleanup instructions -------| #
                 - bossbar remove id:npce_awaiting_input
-                - define scripts:->:citizens_editor_settings_handlers
             # |------- check scripts -------| #
             - if ( not <[scripts].is_empty> ):
                 # |------- cancel queue -------| #
