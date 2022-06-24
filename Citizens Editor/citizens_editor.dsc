@@ -5,11 +5,11 @@
 # + ------------------------------------------------------------------------------------------------------------------ +
 #
 #
-# @<[-|: Htools :|-]>
+# @Htools
 # @author HollowTheSilver
-# @date 2022/06/17
+# @date 2022/06/24
 # @denizen-build-1.2.4 REL-1771
-# @script-version 2.0.4
+# @script-version 2.0.5
 #
 #
 # ------------------------------------------------------------------------------------------------------------------ +
@@ -112,6 +112,7 @@ citizens_editor_config:
 			gui-titles:
 				main-menu: "<&8><&l>Citizens Editor"
 				settings-page: "<&8><&l>Editor -<&gt> <&8><&l>Settings"
+				permissions-page: "<&8><&l>Settings -<&gt> <&8><&l>Permissions"
 				prefixes-page: "<&8><&l>Settings -<&gt> <&8><&l>Prefixes"
 				profiles-page: "<&8><&l>Settings -<&gt> <&8><&l>Profile Editor"
 				interrupt-page: "<&8><&l>Settings -<&gt> <&8><&l>Interrupt"
@@ -132,6 +133,10 @@ citizens_editor_config:
 				previous-page: 04049c90-d3e9-4621-9caf-00000aaa9435|eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYWVjNDlmNGQ1OTUxZTQzMjZiZjM4MTIyOTZlZWE4ZjIwZmIyNzU0YjBhMGZiYWMxN2FiNWI1YTY0NjZiYSJ9fX0=
 				confirm-button: 04049c90-d3e9-4621-9caf-0000aaa21774|eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNDMxMmNhNDYzMmRlZjVmZmFmMmViMGQ5ZDdjYzdiNTVhNTBjNGUzOTIwZDkwMzcyYWFiMTQwNzgxZjVkZmJjNCJ9fX0=
 				deny-button: 04049c90-d3e9-4621-9caf-00000aaa9348|eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZTdmOWM2ZmVmMmFkOTZiM2E1NDY1NjQyYmE5NTQ2NzFiZTFjNDU0M2UyZTI1ZTU2YWVmMGE0N2Q1ZjFmIn19fQ==
+				create-profile: 04049c90-d3e9-4621-9caf-0000aaa10209|eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNWZmMzE0MzFkNjQ1ODdmZjZlZjk4YzA2NzU4MTA2ODFmOGMxM2JmOTZmNTFkOWNiMDdlZDc4NTJiMmZmZDEifX19
+				copy-profile: 04049c90-d3e9-4621-9caf-0000aaa10199|eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZmY3NDE2Y2U5ZTgyNmU0ODk5YjI4NGJiMGFiOTQ4NDNhOGY3NTg2ZTUyYjcxZmMzMTI1ZTAyODZmOTI2YSJ9fX0=
+				delete-profile: 04049c90-d3e9-4621-9caf-00000aaa9382|eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYmViNTg4YjIxYTZmOThhZDFmZjRlMDg1YzU1MmRjYjA1MGVmYzljYWI0MjdmNDYwNDhmMThmYzgwMzQ3NWY3In19fQ==
+				rename-profile: 04049c90-d3e9-4621-9caf-0000aaa52583|eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZmFkMGQxYTc2M2E3ZTk0NmY4NjZkMTAxZDRlMjk2NjFjYjQ4ZDBjNWQ0YjYxMTdhMWYyZTQxMDY0NzVkYzE3ZCJ9fX0=
 		main-menu:
 			settings-button:
 				title: "placeholder"
@@ -185,12 +190,12 @@ citizens_editor_command:
 		# |------- command data -------| #
 		- define prefix <server.flag[citizens_editor.settings.prefixes.main].if_null[<script[citizens_editor_config].parsed_key[prefixes].get[main]>]>
 		- define permission <server.flag[citizens_editor.settings.permissions.use-command].if_null[<script[citizens_editor_config].data_key[permissions].get[use-command]>]>
-		- define source_player <context.source_type.equals[player]>
+		- define source <context.source_type.equals[player]>
 		- define first <context.args.get[1]||null>
 		- define second <context.args.get[2]||null>
 		- define app <custom_object[citizens_editor_application]>
 		# |------- source check -------| #
-		- if ( <context.source_type> == player ):
+		- if ( <[source]> ):
 			# |------- permissions check -------| #
 			- if ( <player.has_permission[<[permission]>].global> ) || ( <[permission]> == <empty> ) || ( <[permission]> == none ) || ( <[permission]> == null ):
 				- if ( not <player.has_flag[citizens_editor.awaiting_input]> ) && ( <player.gamemode> != spectator ):
@@ -199,38 +204,37 @@ citizens_editor_command:
 					# |------- execute command -------| #
 					- choose <[first]>:
 						- default:
-							# |------- open main gui -------| #
-							- define gui-id <[app].get_root>
+							# |------- open root gui-id -------| #
 							- inject citizens_editor_open_inventory
 						- case debug --debug d -d --d:
 							# |------- debug toggle -------| #
-							- define db_prefix <server.flag[citizens_editor.settings.prefixes.debug]>
+							- define debug_prefix <server.flag[citizens_editor.settings.prefixes.debug]>
 							- choose <[second]>:
 								- default:
 									# |------- invalid command -------| #
-									- narrate '<[prefix]> <[db_prefix]> <&c>Invalid <&f>toggle <&c>state for <&f>debug <&c>command.'
+									- narrate '<[prefix]> <[debug_prefix]> <&c>Invalid <&f>toggle <&c>state for <&f>debug <&c>command.'
 								- case null:
 									# |------- invert toggle state -------| #
 									- if ( <player.flag[citizens_editor.debug_mode].if_null[true]> ):
 										- flag <player> citizens_editor.debug_mode:false
-										- narrate '<[prefix]> <[db_prefix]> <&c>disabled<&f>.'
+										- narrate '<[prefix]> <[debug_prefix]> <&c>disabled<&f>.'
 									- else:
 										- flag <player> citizens_editor.debug_mode:true
-										- narrate '<[prefix]> <[db_prefix]> <&a>enabled<&f>.'
+										- narrate '<[prefix]> <[debug_prefix]> <&a>enabled<&f>.'
 								- case 1 enable enabled true:
 									# |------- toggle state true -------| #
 									- if ( not <player.flag[citizens_editor.debug_mode].if_null[false]> ):
 										- flag <player> citizens_editor.debug_mode:true
-										- narrate '<[prefix]> <[db_prefix]> <&a>Enabled<&f><&f>.'
+										- narrate '<[prefix]> <[debug_prefix]> <&a>Enabled<&f><&f>.'
 									- else:
-										- narrate '<[prefix]> <[db_prefix]> <&f>already <&a>enabled<&f>.'
+										- narrate '<[prefix]> <[debug_prefix]> <&f>already <&a>enabled<&f>.'
 								- case 0 disable disabled false:
 									# |------- toggle state false -------| #
 									- if ( <player.flag[citizens_editor.debug_mode].if_null[true]> ):
 										- flag <player> citizens_editor.debug_mode:false
-										- narrate '<[prefix]> <[db_prefix]> <&c>Disabled<&f>.'
+										- narrate '<[prefix]> <[debug_prefix]> <&c>Disabled<&f>.'
 									- else:
-										- narrate '<[prefix]> <[db_prefix]> <&f>already <&c>disabled<&f>.'
+										- narrate '<[prefix]> <[debug_prefix]> <&f>already <&c>disabled<&f>.'
 							- stop
 			- else:
 				# |------- unauthorized -------| #
@@ -244,41 +248,134 @@ citizens_editor_command:
 
 
 citizens_editor_application:
-    ######################################################################################
-	# |-----------------------------  Htools Application  -----------------------------| #
-	######################################################################################
-	# | ---																		   --- | #
-	# | ---   This script represents the main application handler of an Htools     --- | #
-	# | ---   denizen script. The data within directly effects the instantiation   --- | #
-	# | ---   and structure of the abstract syntax tree within the main applica-   --- | #
-	# | ---	  -tion loop. This script should only be edited if you're attempting   --- | #
-    # | ---	  to directly adjust sensitive refrence data that effects the direct   --- | #
-    # | ---	  functionality of subsequent scripts.                                 --- | #
-    # | ---																		   --- | #
+    #####################################################################################
+	# |-----------------------------  Htools Application  ----------------------------| #
+	#####################################################################################
+	# | ---																		  --- | #
+	# | ---   This script represents the main application handler of an Htools    --- | #
+	# | ---   denizen script. This script should only be edited if you intend to  --- | #
+    # | ---	  directly adjust sensitive reference data that directly effects the  --- | #
+    # | ---	  functionality of subsequent inventory scripts.                      --- | #
+    # | ---																		  --- | #
 	######################################################################################
     type: custom
     tags:
         get_ast:
-			- define ast <script[citizens_editor_application].data_key[abstract-syntax-tree]>
-            - determine <[ast]>
+            - determine <script.data_key[abstract-syntax-tree]>
 		get_root:
-			- define ast <script[citizens_editor_application].data_key[abstract-syntax-tree]>
-            - define root <[ast].keys.first>
-			- determine <[ast].get[<[root]>].keys.first>
-    abstract-syntax-tree:
-        # |-------  cache id  |  script id  -------| #
-        main:
-            menu-gui: citizens_editor_menu_gui
-        settings:
-            settings-gui: citizens_editor_settings_gui
-            prefixes-page: citizens_editor_prefixes_page
-            interrupt-page: citizens_editor_interrupt_page
-            profiles-page: citizens_editor_profiles_page
-            gui-page: citizens_editor_gui_page
+			- determine <script.data_key[abstract-syntax-tree].keys.first>-gui
+		get_queues:
+			- determine <script.data_key[properties].get[on-quit-check]>
+	properties:
+		on-quit-check:
+			# | ---  script id  --- | #
+			- citizens_editor_dialog_gui_handler
+			- citizens_editor_settings_gui_handler
+			- citizens_editor_profiles_gui_handler
+	abstract-syntax-tree:
+		# |--------------------------------------------------------------| #
+		# | ---  |              Abstract Syntax Tree              |  --- | #
+		# |--------------------------------------------------------------| #
+		# | ---  		                                             --- | #
+		# | ---  This data structure represents the main inventory   --- | #
+		# | ---  hierarchy that influences various behaviors of the  --- | #
+		# | ---  gui script events. This data structure must follow  --- | #
+		# | ---  an intended format of a generic 'category-id' that  --- | #
+		# | ---  contains a 'gui-id', followed by the potential page --- | #
+		# | ---  id(s) the inventory could contain. These gui-id(s)  --- | #
+		# | ---  must only be valid inventory script-id(s). Any and  --- | #
+		# | ---  all other inventory actions should be within the    --- | #
+		# | ---  'inventories' or 'event_handler' scripts instead.   --- | #
+		# | ---  		                                             --- | #
+		# |--------------------------------------------------------------| #
+		# | ---  |                 Data Structure                 |  --- | #
+		# |--------------------------------------------------------------| #
+		# | ---  		                                             --- | #
+		# | ---  		CATEGORY-ID:                                 --- | #
+		# | ---  		                                             --- | #
+		# | ---  			GUI-ID:	 INV-SCRIPT-ID 		             --- | #
+		# | ---  		                                             --- | #
+		# | ---  			PAGE-ID:  INV-SCRIPT-ID 		         --- | #
+		# | ---  		                                             --- | #
+		# |--------------------------------------------------------------| #
+		# | ---  |                      Root                      |  --- | #
+		# |--------------------------------------------------------------| #
+		# | ---  		                                             --- | #
+		# | ---  The first 'category-id' in the data structure is    --- | #
+		# | ---  interpreted as the 'root' node, and the 'gui-id'    --- | #
+		# | ---  contained will be recognized as the 'root-id'.      --- | #
+		# | ---  This 'root-id' represents the initial or "main"     --- | #
+		# | ---  inventory of the application, and will be the very  --- | #
+		# | ---  first inventory displayed on command execution.     --- | #
+		# | ---  		                                             --- | #
+		# |--------------------------------------------------------------| #
+		# | ---  |                     gui-id                     |  --- | #
+		# |--------------------------------------------------------------| #
+		# | ---  		                                             --- | #
+		# | ---  A 'unique-id' that contains an existing inventory   --- | #
+		# | ---  'script-id'. This unique 'gui-id' will be recogn-   --- | #
+		# | ---  -ized as the 'root' of the 'category-id' container. --- | #
+		# | ---  This 'id' must include the characters "-gui", wit-  --- | #
+		# | ---  -hout including the quotes.                         --- | #
+		# | ---  		                                             --- | #
+		# | ---  Example:                                            --- | #
+		# | ---     _________________________________                --- | #
+		# | ---     |   'gui-id'   |  'script-id'   |                --- | #
+		# | ---  	settings-gui:  citizens_editor_settings_gui      --- | #
+		# | ---  		                                             --- | #
+		# |--------------------------------------------------------------| #
+		# | ---  |                  category-id                   |  --- | #
+		# |--------------------------------------------------------------| #
+		# | ---  		                                             --- | #
+		# | ---  A 'unique-id' that matches a contained 'gui-id',    --- | #
+		# | ---  without including the '-gui' suffix. This unique    --- | #
+		# | ---  'category-id' must include at least one 'gui-id'    --- | #
+		# | ---  and an associated 'script-id' to be a valid node.   --- | #
+		# | ---                                                      --- | #
+		# | ---  Example:                                            --- | #
+		# | ---    ____________                                      --- | #
+		# | ---    | 'cat-id' |                                      --- | #
+		# | ---  	settings:                                        --- | #
+		# | ---     	_________________________________            --- | #
+		# | ---     	|   'gui-id'   |  'script-id'   |            --- | #
+		# | ---	    	settings-gui:  citizens_editor_settings_gui  --- | #
+		# | ---  		                                             --- | #
+		# |--------------------------------------------------------------| #
+		# | ---  |                    page-id                     |  --- | #
+		# |--------------------------------------------------------------| #
+		# | ---  		                                             --- | #
+		# | ---  A 'unique-id' that contains an existing inventory   --- | #
+		# | ---  'script-id'. This 'page-id' will be recognized and  --- | #
+		# | ---  interpreted differently than a 'gui-id' data node.  --- | #
+		# | ---  A 'page-id' is a descendant of the most recent      --- | #
+		# | ---  'gui-id' in the category, and has some special      --- | #
+		# | ---  properties applied at the script's runtime. The     --- | #
+		# | ---  first unique property of a 'page-id' is possessing  --- | #
+		# | ---  'relatives'. A 'relative' is any other 'page-id'    --- | #
+		# | ---  that derives from the same 'gui-id'.                --- | #
+		# | ---  		                                             --- | #
+		# | ---  Example:                                            --- | #
+		# | ---     _________________________________                --- | #
+		# | ---     |   'gui-id'   |  'script-id'   |                --- | #
+		# | ---  	settings-gui:  citizens_editor_settings_gui      --- | #
+		# | ---  		                                             --- | #
+		# |--------------------------------------------------------------| #
+        main-menu:
+			gui: citizens_editor_menu_gui
         profile-editor:
-            profile-editor-gui: citizens_editor_profile_editor_gui
+			gui: citizens_editor_profile_editor_gui
+            pages:
+				profile-page: citizens_editor_profile_gui
+		settings:
+			gui: citizens_editor_settings_gui
+			pages:
+				permissions-page: citizens_editor_permissions_page
+				prefixes-page: citizens_editor_prefixes_page
+				interrupt-page: citizens_editor_interrupt_page
+				profiles-page: citizens_editor_profiles_page
+				gui-page: citizens_editor_gui_page
         dialog:
-            dialog-gui: citizens_editor_dialog_gui
+            gui: citizens_editor_dialog_gui
 
 
 
