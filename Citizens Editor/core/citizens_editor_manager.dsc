@@ -149,7 +149,7 @@ htools_uix_manager:
     type: world
     debug: true
     events:
-	    ##################################################
+        ##################################################
         # | ---  |        manager events        |  --- | #
         ##################################################
         after custom event id:placeholder:
