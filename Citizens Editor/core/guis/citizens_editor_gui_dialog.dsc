@@ -35,7 +35,7 @@ citizens_editor_dialog_gui:
 
 
 
-citizens_editor_dialog_gui_handler:
+htools_dialog_manager:
     type: world
     debug: true
     events:
@@ -44,6 +44,7 @@ citizens_editor_dialog_gui_handler:
         #################################################
         on player flagged:citizens_editor.awaiting_dialog|citizens_editor.awaiting_input quits:
             - ratelimit <player> 1t
+            - define prefix <server.flag[citizens_editor.settings.prefixes.main].parse_color>
             - inject <script.name> path:cancel_dialog
 
         ##################################################
@@ -51,6 +52,7 @@ citizens_editor_dialog_gui_handler:
         ##################################################
         on player flagged:citizens_editor.awaiting_dialog closes citizens_editor_dialog_gui:
             - ratelimit <player> 1t
+            - define prefix <server.flag[citizens_editor.settings.prefixes.main].parse_color>
             - inject <script.name> path:cancel_dialog
 
         after player left clicks item_flagged:npce-gui-button in citizens_editor_dialog_gui:
@@ -85,8 +87,7 @@ citizens_editor_dialog_gui_handler:
 
 
 
-# | ----------------------------------------------  CITIZENS EDITOR | GUI TASKS  ---------------------------------------------- | #
-
+# | ------------------------------------------------------------------------------------------------------------------------------ | #
 
 
     open_dialog:
@@ -116,18 +117,18 @@ citizens_editor_dialog_gui_handler:
             # |------- adjust inventory -------| #
             - adjust <inventory[<[gui-id]>]> title:<[gui_title]>
             # |------- open dialog inventory -------| #
-            - inject citizens_editor_gui_handler path:open_inventory
+            - inject htools_uix_manager path:open
             - waituntil <player.has_flag[citizens_editor.received_dialog]> rate:5t max:60s
         - else:
             # |------- validate inventory -------| #
-            - inject citizens_editor_gui_handler path:validate_inventory
+            - inject htools_uix_manager path:validate_inventory
             - define noted <server.notes[inventories].contains[<inventory[<[gui-id]>].if_null[null]>]>
             - define flagged <server.flag[citizens_editor.inventories].contains[<[gui-id]>]>
             - if ( <[flagged]> ) && ( <[noted]> ):
                 # |------- adjust inventory -------| #
                 - adjust <inventory[<[gui-id]>]> title:<[gui_title]>
                 # |------- open dialog -------| #
-                - inject citizens_editor_gui_handler path:open_inventory
+                - inject htools_uix_manager path:open
                 - waituntil <player.has_flag[citizens_editor.received_dialog]> rate:5t max:60s
         # |------- reset flag -------| #
         - flag <player> citizens_editor.awaiting_dialog:!
@@ -223,7 +224,7 @@ citizens_editor_dialog_gui_handler:
                     - flag <player> citizens_editor.received_input:!
                     # |------- open previous inventory -------| #
                     - define gui-id <player.flag[citizens_editor.gui.current]>
-                    - inject citizens_editor_gui_handler path:open_inventory
+                    - inject <script.name> path:open
                     - stop
         - else:
             # |------- invalid timeout -------| #
@@ -240,7 +241,7 @@ citizens_editor_dialog_gui_handler:
         # | ---  |              gui task              |  --- | #
         ########################################################
         # | ---                                          --- | #
-        # | ---  Required:  none                         --- | #
+        # | ---  Required:  prefix                       --- | #
         # | ---                                          --- | #
         ########################################################
         - ratelimit <player> 1t
@@ -275,8 +276,11 @@ citizens_editor_dialog_gui_handler:
             - if ( <[queue].script> != <script> ) && ( <[queue].script.contains_text[citizens_editor]> ):
                 - if ( <[queue].is_valid> ) && ( <[queue].player> == <player> ):
                     - queue <[queue]> clear
-                    - narrate "'<player.name>.queue.<[queue].script>' successfully cancelled."
-                    - announce to_console "'<player.name>.queue.<[queue].script>' successfully cancelled."
+                    - if ( <player.flag[citizens_editor.debug_mode].if_null[false]> ):
+                        - narrate "<[prefix]> <&f>Queue <&b><[queue].script.name> <&c>cancelled <&f>successfully."
+                        - announce to_console "<[prefix]> '<player.name>.queue.<[queue].script.name>' successfully cancelled."
+            - else if ( <[queue].script> == <script> ) && ( <player.flag[citizens_editor.debug_mode].if_null[false]> ):
+                - narrate "<[prefix]> <&f>Queue <&b><script.name> <&c>cancelled <&f>successfully."
         - stop
 
 

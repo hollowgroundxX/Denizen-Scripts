@@ -5,7 +5,7 @@
 
 
 
-citizens_editor_main_menu_gui:
+citizens_editor_main_menu_root:
     ##################################################
     # | ---  |       inventory script       |  --- | #
     ##################################################
@@ -51,25 +51,25 @@ citizens_editor_main_menu_gui:
 
 
 
-citizens_editor_main_menu_gui_handler:
+citizens_editor_main_menu_root_handler:
     type: world
     debug: true
     events:
         ##################################################
         # | ---  |       inventory events       |  --- | #
         ##################################################
-        on player opens citizens_editor_main_menu_gui:
+        on player opens citizens_editor_main_menu_root:
             - ratelimit <player> 1t
             # |------- procedural items -------| #
             - define last-id <player.flag[citizens_editor.gui.next].last.if_null[<context.inventory.note_name>]>
-            - define fill-item <script[citizens_editor_main_menu_gui].data_key[definitions].get[center-fill].parsed>
-            - define next-page-item <script[citizens_editor_main_menu_gui].data_key[definitions].get[next-page].parsed>
+            - define fill-item <script[citizens_editor_main_menu_root].data_key[definitions].get[center-fill].parsed>
+            - define next-page-item <script[citizens_editor_main_menu_root].data_key[definitions].get[next-page].parsed>
             # |------- check state -------| #
             - if ( <[last-id]> == <context.inventory.note_name> ) && ( <context.inventory.list_contents.contains[<[next-page-item]>]> ):
                 # |------- update inventory slot -------| #
                 - inventory set destination:<context.inventory> origin:<[fill-item]> slot:<context.inventory.find_item[raw_exact:<[next-page-item]>]>
 
-        after player left clicks item_flagged:npce-gui-button in citizens_editor_main_menu_gui:
+        after player left clicks item_flagged:npce-gui-button in citizens_editor_main_menu_root:
             - ratelimit <player> 1t
             # |------- event data -------| #
             - define prefix <server.flag[citizens_editor.settings.prefixes.main].parse_color>
@@ -82,22 +82,22 @@ citizens_editor_main_menu_gui_handler:
                     - stop
                 - case previous-page:
                     # |------- open previous gui -------| #
-                    - inject citizens_editor_gui_handler path:open_previous_inventory
+                    - inject htools_uix_manager path:open_previous
                 - case next-page:
                     # |------- open next gui -------| #
-                    - inject citizens_editor_gui_handler path:open_next_inventory
+                    - inject htools_uix_manager path:open_next
                 - case skin-editor-gui:
                     # |------- open skin editor gui -------| #
-                    - inject citizens_editor_gui_handler path:open_inventory
+                    - inject htools_uix_manager path:open
                 - case profile-editor-gui:
                     # |------- open profile editor gui -------| #
-                    - inject citizens_editor_gui_handler path:open_inventory
+                    - inject htools_uix_manager path:open
                 - case settings-gui:
                     # |------- open settings gui -------| #
-                    - inject citizens_editor_gui_handler path:open_inventory
+                    - inject htools_uix_manager path:open
             # |------- procedural data -------| #
-            - define fill-item <script[citizens_editor_main_menu_gui].data_key[definitions].get[center-fill].parsed>
-            - define next-page-item <script[citizens_editor_main_menu_gui].data_key[definitions].get[next-page].parsed>
+            - define fill-item <script[citizens_editor_main_menu_root].data_key[definitions].get[center-fill].parsed>
+            - define next-page-item <script[citizens_editor_main_menu_root].data_key[definitions].get[next-page].parsed>
             # |------- check state -------| #
             - if ( not <context.clicked_inventory.list_contents.contains[<[next-page-item]>]> ):
                 # |------- update inventory slot -------| #

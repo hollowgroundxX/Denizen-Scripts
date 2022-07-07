@@ -123,7 +123,7 @@ citizens_editor_skins_gui_handler:
                 - define parsed <[skin-id].get[name].parse_color>
                 - define stripped <[parsed].strip_color>
                 - define gui_title "<&8><&l>Edit -<&gt> <[stripped]>"
-                - inject <script.name> path:open_skin_gui
+                - inject <script.name> path:open_skin
                 # |------- update inventory slot -------| #
                 - define next-page-item <script[citizens_editor_skin_editor_gui].data_key[definitions].get[next-page].parsed>
                 - if ( not <context.clicked_inventory.list_contents.contains[<[next-page-item]>]> ):
@@ -139,9 +139,9 @@ citizens_editor_skins_gui_handler:
             # |------- context check -------| #
             - choose <[button-id]>:
                 - case previous-page:
-                    - inject citizens_editor_gui_handler path:open_previous_inventory
+                    - inject htools_uix_manager path:open_previous
                 - case next-page:
-                    - inject citizens_editor_gui_handler path:open_next_inventory
+                    - inject htools_uix_manager path:open_next
                 - case add-skin:
                     # |------- check flag -------| #
                     - if not ( <server.has_flag[citizens_editor.skins]> ):
@@ -152,7 +152,7 @@ citizens_editor_skins_gui_handler:
                     - define bossbar "<&b><&l>Awaiting Input"
                     - define gui_title "<&8><&l>Create New skin?"
                     # |------- open input dialog -------| #
-                    - inject citizens_editor_dialog_gui_handler path:open_input_dialog
+                    - inject htools_dialog_manager path:open_input_dialog
                     - define gui-id previous-page
                     # |------- validate dialog -------| #
                     - if ( <player.flag[citizens_editor.received_dialog].if_null[false]> ):
@@ -173,11 +173,11 @@ citizens_editor_skins_gui_handler:
                                 - flag server <[container]>.<[stripped]>:<[default_skin]>
                                 - narrate "<[prefix]> <&f>skin '<&b><[stripped]><&f>' created."
                                 # |------- validate inventory -------| #
-                                - inject citizens_editor_gui_handler path:validate_inventory
+                                - inject htools_uix_manager path:validate_inventory
                             - else:
                                 - narrate "<[prefix]> <&c>skin id '<&f><[stripped]><&c>' already exists."
                     # |------- open previous inventory -------| #
-                    - inject citizens_editor_gui_handler path:open_previous_inventory
+                    - inject htools_uix_manager path:open_previous
                     # |------- clear input data -------| #
                     - flag <player> citizens_editor.received_input:!
 
@@ -198,14 +198,14 @@ citizens_editor_skins_gui_handler:
             # |------- context check -------| #
             - choose <[button-id]>:
                 - case previous-page:
-                    - inject citizens_editor_gui_handler path:open_previous_inventory
+                    - inject htools_uix_manager path:open_previous
                 - case next-page:
-                    - inject citizens_editor_gui_handler path:open_next_inventory
+                    - inject htools_uix_manager path:open_next
                 - case delete-skin:
                     # |------- inventory data -------| #
                     - define gui_title "<&8><&l>Delete <[skin-id].parse_color>?"
                     # |------- open input dialog -------| #
-                    - inject citizens_editor_dialog_gui_handler path:open_dialog
+                    - inject htools_dialog_manager path:open_dialog
                     # |------- validate dialog -------| #
                     - if ( <player.flag[citizens_editor.received_dialog].if_null[false]> ):
                         # |------- dialog data -------| #
@@ -225,15 +225,15 @@ citizens_editor_skins_gui_handler:
                                 - narrate "<[prefix]> <&c>Skin '<&f><[stripped]><&c>' deleted."
                                 # |------- validate and open previous inventory -------| #
                                 - define gui-id previous-page-2
-                                - inject citizens_editor_gui_handler path:validate_inventory
-                                - inject citizens_editor_gui_handler path:open_previous_inventory
+                                - inject htools_uix_manager path:validate_inventory
+                                - inject htools_uix_manager path:open_previous
                                 # |------- stop queue -------| #
                                 - stop
                             - else:
                                 - narrate "<[prefix]> <&c>Skin id '<&f><[stripped]><&c>' doesn't exist."
                     # |------- open previous inventory -------| #
                     - define gui-id previous-page
-                    - inject citizens_editor_gui_handler path:open_previous_inventory
+                    - inject htools_uix_manager path:open_previous
                 - case rename-skin:
                     # |------- input data -------| #
                     - define title "<&b><&l>Enter a new ID"
@@ -241,7 +241,7 @@ citizens_editor_skins_gui_handler:
                     - define bossbar "<&b><&l>Awaiting Input"
                     - define gui_title "<&8><&l>Rename <[skin-id].parse_color.strip_color>?"
                     # |------- open input dialog -------| #
-                    - inject citizens_editor_dialog_gui_handler path:open_input_dialog
+                    - inject htools_dialog_manager path:open_input_dialog
                     # |------- validate dialog -------| #
                     - if ( <player.flag[citizens_editor.received_dialog].if_null[false]> ):
                         # |------- dialog data -------| #
@@ -269,15 +269,15 @@ citizens_editor_skins_gui_handler:
                                 - narrate "<[prefix]> <&f>Skin '<&b><[stripped_old]><&f>' renamed to '<&b><[stripped_new]><&f>' successfully."
                                 # |------- validate and open previous inventory -------| #
                                 - define gui-id previous-page-2
-                                - inject citizens_editor_gui_handler path:validate_inventory
-                                - inject citizens_editor_gui_handler path:open_previous_inventory
+                                - inject htools_uix_manager path:validate_inventory
+                                - inject htools_uix_manager path:open_previous
                                 # |------- stop queue -------| #
                                 - stop
                             - else:
                                 - narrate "<[prefix]> <&c>Rename failed. Skin id '<&f><[stripped_new]><&c>' already exists."
                     # |------- open previous inventory -------| #
                     - define gui-id previous-page
-                    - inject citizens_editor_gui_handler path:open_previous_inventory
+                    - inject htools_uix_manager path:open_previous
                     # |------- clear input data -------| #
                     - flag <player> citizens_editor.received_input:!
 
@@ -287,20 +287,20 @@ citizens_editor_skins_gui_handler:
 
 
 
-    open_skin_gui:
+    open_skin:
         ####################################################
         # | ---  |            Gui Task            |  --- | #
         ####################################################
-		# | ---										 --- | #
+	    # | ---                                      --- | #
         # | ---  Required:  prefix | gui_title       --- | #
-		# | ---										 --- | #
+	    # | ---                                      --- | #
         ####################################################
         - ratelimit <player> 1t
         # |------- inventory data -------| #
         - if ( <[gui-id].exists> ):
             - define cached-gui <[gui-id]>
         - define gui-id skin-page
-        - inject citizens_editor_gui_handler path:validate_inventory
+        - inject htools_uix_manager path:validate_inventory
         - define noted <server.notes[inventories].contains[<inventory[<[gui-id]>].if_null[null]>]>
         - define flagged <server.flag[citizens_editor.inventories].contains[<[gui-id]>]>
         - flag <player> citizens_editor.skin:<[skin-id].get[name]>
@@ -310,9 +310,9 @@ citizens_editor_skins_gui_handler:
                 # |------- adjust inventory -------| #
                 - adjust <inventory[<[gui-id]>]> title:<[gui_title]>
                 # |------- open dialog inventory -------| #
-                - inject citizens_editor_gui_handler path:open_inventory
+                - inject htools_uix_manager path:open
             - else:
-                - narrate "<[prefix]> <&c>task.open_skin_gui <&c>missing required parameter <&f>gui_title<&c>."
+                - narrate "<[prefix]> <&c>task.open_skin <&c>missing required parameter <&f>gui_title<&c>."
         # |------- reset gui-id -------| #
         - if ( <[cached-gui].exists> ):
             - define gui-id <[cached-gui]>

@@ -214,27 +214,27 @@ citizens_editor_settings_gui_handler:
                 # | ---  navigate to previous  --- | #
                 # |--------------------------------| #
                 - case previous-page:
-                    - inject citizens_editor_gui_handler path:open_previous_inventory
+                    - inject htools_uix_manager path:open_previous
                 # |----------------------------| #
                 # | ---  navigate to next  --- | #
                 # |----------------------------| #
                 - case next-page:
-                    - inject citizens_editor_gui_handler path:open_next_inventory
+                    - inject htools_uix_manager path:open_next
                 - case permissions-page:
                     # |------- open prefixes gui -------| #
-                    - inject citizens_editor_gui_handler path:open_inventory
+                    - inject htools_uix_manager path:open
                 - case prefixes-page:
                     # |------- open prefixes gui -------| #
-                    - inject citizens_editor_gui_handler path:open_inventory
+                    - inject htools_uix_manager path:open
                 - case profiles-page:
                     # |------- open profiles gui -------| #
-                    - inject citizens_editor_gui_handler path:open_inventory
+                    - inject htools_uix_manager path:open
                 - case interrupt-page:
                     # |------- open interrupt gui -------| #
-                    - inject citizens_editor_gui_handler path:open_inventory
+                    - inject htools_uix_manager path:open
                 - case gui-page:
                     # |------- open inventory gui -------| #
-                    - inject citizens_editor_gui_handler path:open_inventory
+                    - inject htools_uix_manager path:open
 
 
 
@@ -254,12 +254,12 @@ citizens_editor_settings_gui_handler:
                 # | ---  navigate to previous  --- | #
                 # |--------------------------------| #
                 - case previous-page:
-                    - inject citizens_editor_gui_handler path:open_previous_inventory
+                    - inject htools_uix_manager path:open_previous
                 # |----------------------------| #
                 # | ---  navigate to next  --- | #
                 # |----------------------------| #
                 - case next-page:
-                    - inject citizens_editor_gui_handler path:open_next_inventory
+                    - inject htools_uix_manager path:open_next
 
 
 
@@ -280,12 +280,12 @@ citizens_editor_settings_gui_handler:
                 # | ---  navigate to previous  --- | #
                 # |--------------------------------| #
                 - case previous-page:
-                    - inject citizens_editor_gui_handler path:open_previous_inventory
+                    - inject htools_uix_manager path:open_previous
                 # |----------------------------| #
                 # | ---  navigate to next  --- | #
                 # |----------------------------| #
                 - case next-page:
-                    - inject citizens_editor_gui_handler path:open_next_inventory
+                    - inject htools_uix_manager path:open_next
 
                 # |------------------------------| #
                 # | ---  adjust main prefix  --- | #
@@ -297,7 +297,7 @@ citizens_editor_settings_gui_handler:
                     - define bossbar "<&b><&l>Awaiting Input"
                     - define gui_title "<&8><&l>Save New Prefix?"
                     # |------- open input dialog -------| #
-                    - inject citizens_editor_dialog_gui_handler path:open_input_dialog
+                    - inject htools_dialog_manager path:open_input_dialog
                     - define gui-id previous-page
                     # |------- validate dialog -------| #
                     - if ( <player.flag[citizens_editor.received_dialog].if_null[false]> ):
@@ -314,11 +314,11 @@ citizens_editor_settings_gui_handler:
                                 - flag server <[flag]>:<[input].parse_color>
                                 - narrate "<[prefix]> <&f>Main prefix updated to <[input].parse_color>"
                                 # |------- validate inventory -------| #
-                                - inject citizens_editor_gui_handler path:validate_inventory
+                                - inject htools_uix_manager path:validate_inventory
                     # |------- clear input data -------| #
                     - flag <player> citizens_editor.received_input:!
                     # |------- open previous inventory -------| #
-                    - inject citizens_editor_gui_handler path:open_previous_inventory
+                    - inject htools_uix_manager path:open_previous
 
                 # |-------------------------------| #
                 # | ---  adjust debug prefix  --- | #
@@ -330,7 +330,7 @@ citizens_editor_settings_gui_handler:
                     - define bossbar "<&b><&l>Awaiting Input"
                     - define gui_title "<&8><&l>Save New Prefix?"
                     # |------- open input dialog -------| #
-                    - inject citizens_editor_dialog_gui_handler path:open_input_dialog
+                    - inject htools_dialog_manager path:open_input_dialog
                     - define gui-id previous-page
                     # |------- validate dialog -------| #
                     - if ( <player.flag[citizens_editor.received_dialog].if_null[false]> ):
@@ -347,11 +347,11 @@ citizens_editor_settings_gui_handler:
                                 - flag server <[flag]>:<[input].parse_color>
                                 - narrate "<[prefix]> <&f>Main prefix updated to <[input].parse_color>"
                                 # |------- validate inventory -------| #
-                                - inject citizens_editor_gui_handler path:validate_inventory
+                                - inject htools_uix_manager path:validate_inventory
                     # |------- clear input data -------| #
                     - flag <player> citizens_editor.received_input:!
                     # |------- open previous inventory -------| #
-                    - inject citizens_editor_gui_handler path:open_previous_inventory
+                    - inject htools_uix_manager path:open_previous
 
                 # |-----------------------------| #
                 # | ---  adjust npc prefix  --- | #
@@ -363,7 +363,7 @@ citizens_editor_settings_gui_handler:
                     - define bossbar "<&b><&l>Awaiting Input"
                     - define gui_title "<&8><&l>Save New Prefix?"
                     # |------- open input dialog -------| #
-                    - inject citizens_editor_dialog_gui_handler path:open_input_dialog
+                    - inject htools_dialog_manager path:open_input_dialog
                     - define gui-id previous-page
                     # |------- validate dialog -------| #
                     - if ( <player.flag[citizens_editor.received_dialog].if_null[false]> ):
@@ -380,11 +380,11 @@ citizens_editor_settings_gui_handler:
                                 - flag server <[flag]>:<[input].parse_color.parsed>
                                 - narrate "<[prefix]> <&f>Main prefix updated to <[input].parse_color.parsed>"
                                 # |------- validate inventory -------| #
-                                - inject citizens_editor_gui_handler path:validate_inventory
+                                - inject htools_uix_manager path:validate_inventory
                     # |------- clear input data -------| #
                     - flag <player> citizens_editor.received_input:!
                     # |------- open previous inventory -------| #
-                    - inject citizens_editor_gui_handler path:open_previous_inventory
+                    - inject htools_uix_manager path:open_previous
 
 
 
@@ -405,12 +405,12 @@ citizens_editor_settings_gui_handler:
                 # | ---  navigate to previous  --- | #
                 # |--------------------------------| #
                 - case previous-page:
-                    - inject citizens_editor_gui_handler path:open_previous_inventory
+                    - inject htools_uix_manager path:open_previous
                 # |----------------------------| #
                 # | ---  navigate to next  --- | #
                 # |----------------------------| #
                 - case next-page:
-                    - inject citizens_editor_gui_handler path:open_next_inventory
+                    - inject htools_uix_manager path:open_next
 
 
 
@@ -430,12 +430,12 @@ citizens_editor_settings_gui_handler:
                 # | ---  navigate to previous  --- | #
                 # |--------------------------------| #
                 - case previous-page:
-                    - inject citizens_editor_gui_handler path:open_previous_inventory
+                    - inject htools_uix_manager path:open_previous
                 # |----------------------------| #
                 # | ---  navigate to next  --- | #
                 # |----------------------------| #
                 - case next-page:
-                    - inject citizens_editor_gui_handler path:open_next_inventory
+                    - inject htools_uix_manager path:open_next
 
 
 
@@ -455,12 +455,12 @@ citizens_editor_settings_gui_handler:
                 # | ---  navigate to previous  --- | #
                 # |--------------------------------| #
                 - case previous-page:
-                    - inject citizens_editor_gui_handler path:open_previous_inventory
+                    - inject htools_uix_manager path:open_previous
                 # |----------------------------| #
                 # | ---  navigate to next  --- | #
                 # |----------------------------| #
                 - case next-page:
-                    - inject citizens_editor_gui_handler path:open_next_inventory
+                    - inject htools_uix_manager path:open_next
 
 
 

@@ -7,8 +7,8 @@
 
 citizens_editor_command:
 	##################################################
-    # | ---  |        command script        |  --- | #
-    ##################################################
+	# | ---  |        command script        |  --- | #
+	##################################################
 	type: command
 	debug: true
 	name: citizenseditor
@@ -21,17 +21,36 @@ citizens_editor_command:
 		- npce
 		- npcedit
 		- npceditor
-	tab completions:
-        1: help|debug
-		2: enable|disable
-        default: StopTyping
+	#tab completions:
+        #1: help|debug
+		#2: enable|disable
+        #default: StopTyping
+	tab complete:
+		- define result <list>
+		- if ( <context.raw_args.trim> == <empty> ) || ( <context.args.size> == 1 && !<context.raw_args.ends_with[<&sp>]> ):
+			- if ( <plugin[sentinel].exists> ) && ( <element[sentinel].starts_with[<context.args.first||>]> ):
+				- define result:->:sentinel
+			- define result:|:select|deselect|tool|show|save|load|quiet|loud|debug
+		- else:
+			- choose <context.args.first>:
+				- case select sel deselect desel unselect unsel:
+					- define result <server.npcs.parse[id].include[all]>
+				- case save load:
+					- define result <server.flag[multinpcs_selections_saved].keys.parse[unescaped]||<list>>
+				- case sentinel:
+					- if <plugin[Sentinel].exists>:
+						- define initial <player.tab_completions[<context.raw_args>]>
+				- case trait:
+					- define initial <player.tab_completions[<context.raw_args>]>
+		- if not ( <[initial].exists> ):
+			- define initial "<player.tab_completions[npc <context.raw_args>]>"
+		- determine <[result].filter[starts_with[<context.args.last||>]].include[<[initial]>]>
 	script:
 		# |------- command data -------| #
 		- define permission <server.flag[citizens_editor.settings.permissions.use-command].if_null[<script[citizens_editor_config].data_key[permissions].get[use-command]>]>
 		- define source <context.source_type.equals[player]>
 		- define first <context.args.get[1]||null>
 		- define second <context.args.get[2]||null>
-		- define app <custom_object[citizens_editor_application]>
 		# |------- source check -------| #
 		- if ( <[source]> ):
 			# |------- permissions check -------| #
@@ -46,7 +65,7 @@ citizens_editor_command:
 					- choose <[first]>:
 						- default:
 							# |------- open root gui-id -------| #
-							- inject citizens_editor_gui_handler path:open_inventory
+							- inject htools_uix_manager path:open
 						- case debug --debug d -d --d:
 							# |------- debug toggle -------| #
 							- choose <[second]>:
@@ -103,12 +122,12 @@ citizens_editor_command_handler:
 
 	validate_command:
 		####################################################
-        # | ---  |          command task          |  --- | #
-        ####################################################
-		# | ---										 --- | #
-        # | ---  Required:  app          			 --- | #
-		# | ---										 --- | #
-        ####################################################
+		# | ---  |          command task          |  --- | #
+		####################################################
+		# | ---                                      --- | #
+		# | ---  Required:  none                     --- | #
+		# | ---                                      --- | #
+		####################################################
 		- ratelimit <player> 1t
 		# |------- container check -------| #
 		- if ( not <server.has_flag[citizens_editor]> ):
@@ -145,7 +164,8 @@ citizens_editor_command_handler:
 			- flag server citizens_editor.settings:<[default_settings]>
 		
 		# |------- build inventories -------| #
-		- flag server citizens_editor.ast:<[app].get_ast>
+		- if not ( <server.flag[citizens_editor.ast].exists> ):
+			- inject htools_uix_manager path:build
 		
 		# |------- reset navigation data -------| #
 		- flag <player> citizens_editor.gui.current:!
@@ -153,7 +173,7 @@ citizens_editor_command_handler:
 		- flag <player> citizens_editor.gui.previous:!
 
 		# |------- validate dependencies -------| #
-		- inject citizens_editor_command_handler path:validate_dependencies
+		- inject <script.name> path:validate_dependencies
 		
 		# |------- set permissions handler -------| #
 		- foreach <server.flag[citizens_editor.dependencies.plugins]> as:plugin:
@@ -178,12 +198,12 @@ citizens_editor_command_handler:
 
 	validate_dependencies:
 		####################################################
-        # | ---  |          command task          |  --- | #
-        ####################################################
-		# | ---										 --- | #
-        # | ---  Required:  app          			 --- | #
-		# | ---										 --- | #
-        ####################################################
+		# | ---  |          command task          |  --- | #
+		####################################################
+		# | ---                                      --- | #
+		# | ---  Required:  app                      --- | #
+		# | ---                                      --- | #
+		####################################################
 		- ratelimit <player> 1t
 		# |------- define data -------| #
 		- define prefix <server.flag[citizens_editor.settings.prefixes.main].parse_color>
