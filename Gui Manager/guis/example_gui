@@ -1,0 +1,159 @@
+ 
+
+
+####################################################################
+# | -------------------  |  UIX Manager  |  -------------------- | #
+####################################################################
+# | ---                                                      --- | #
+# | ---  This script represents the main uix handler of any  --- | #
+# | ---  denizen application. These scripts should only be   --- | #
+# | ---  edited if you intend to directly adjust sensitive   --- | #
+# | ---  reference data and tasks that affect the operation  --- | #
+# | ---  and functionality of subsequent gui scripts.        --- | #
+# | ---                                                      --- | #
+####################################################################
+# | ---  |                   gui-file                     |  --- | #
+####################################################################
+# | ---                                                      --- | #
+# | ---  A 'gui-file' is simply a denizen script file that   --- | #
+# | ---  contains various types of inventory and handler     --- | #
+# | ---  scripts related to a 'gui'(s) functionality.        --- | #
+# | ---                                                      --- | #
+# | ---  A 'gui-file' can be thought of as the 'front end'   --- | #
+# | ---  of the manager, while the manager itself assumes    --- | #
+# | ---  the 'back end' role.                                --- | #
+# | ---                                                      --- | #
+# | ---  A 'gui-file' must follow a unique naming convention --- | #
+# | ---  and has a small list of requirments to be viewed    --- | #
+# | ---  as valid. These script requirments are interpreted  --- | #
+# | ---  as manager properties that directly affect the      --- | #
+# | ---  functionality of all gui tasks and operations.      --- | #
+# | ---                                                      --- | #
+# | ---  A valid 'gui-file' can only contain one 'gui-id'    --- | #
+# | ---  per file, but may contain multiple 'page-id'(s).    --- | #
+# | ---                                                      --- | #
+# | ---  When creating a 'gui-file', you must consider two   --- | #
+# | ---  separate, but equally important factors;            --- | #
+# | ---                                                      --- | #
+####################################################################
+# | ---  |                   script-id                    |  --- | #
+####################################################################
+# | ---                                                      --- | #
+# | ---  The 'script-id' is the actual 'gui-file' name that  --- | #
+# | ---  contains various 'inventory-id'(s), typically found --- | #
+# | ---  within the '/guis' directory.                       --- | #
+# | ---                                                      --- | #
+# | ---  A valid 'script-id' should not contain any spaces   --- | #
+# | ---  or delimiters besides an underscore.                --- | #
+# | ---                                                      --- | #
+# | ---  A valid 'script-id' must start with the characters  --- | #
+# | ---  'gui_handler_gui' and end with any 'unique-id'.     --- | #
+# | ---                                                      --- | #
+# |--------------------------------------------------------------| #
+# | ---                       example                        --- | #
+# |--------------------------------------------------------------| #
+# | ---                                                      --- | #
+# | ---                      script-id                       --- | #
+# | ---    ______________________________________________    --- | #
+# | ---    |     'prefix'     |   'uuid'   | 'file.ext' |    --- | #
+# | ---    <script.name>_gui_my_script_uid.dsc             --- | #
+# | ---                                                      --- | #
+####################################################################
+# | ---  |                  inventory-id                  |  --- | #
+####################################################################
+# | ---                                                      --- | #
+# | ---  The 'inventory-id' is the unique name given to any  --- | #
+# | ---  inventory script within a valid 'script-id'.        --- | #
+# | ---                                                      --- | #
+# | ---  An 'inventory-id' should not contain any spaces or  --- | #
+# | ---  delimiters besides an underscore.                   --- | #
+# | ---                                                      --- | #
+# | ---  An 'inventory-id' must start with the characters    --- | #
+# | ---  'gui_handler_gui', contain a 'unique-id' and end    --- | #
+# | ---  with one of three unique keywords shown below.      --- | #
+# | ---                                                      --- | #
+# |--------------------------------------------------------------| #
+# | ---                       examples                       --- | #
+# |--------------------------------------------------------------| #
+# | ---                                                      --- | #
+# | ---                     inventory-id                     --- | #
+# | ---         ____________________________________         --- | #
+# | ---         | 'script-id' | 'uuid' | 'keyword' |         --- | #
+# | ---           script_id     _root_      gui              --- | #
+# | ---         ____________________________________         --- | #
+# | ---         | 'script-id' | 'uuid' | 'keyword' |         --- | #
+# | ---           script_id      _any_      gui              --- | #
+# | ---         ____________________________________         --- | #
+# | ---         | 'script-id' | 'uuid' | 'keyword' |         --- | #
+# | ---           script_id      _any_      page             --- | #
+# | ---                                                      --- | #
+# |--------------------------------------------------------------| #
+# | ---                       example                        --- | #
+# |--------------------------------------------------------------| #
+# | ---                                                      --- | #
+# | ---                 generated structure                  --- | #
+# | ---                _____________________                 --- | #
+# | ---                                                      --- | #
+# | ---                ast:                                  --- | #
+# | ---                  root-uid:                           --- | #
+# | ---                      gui-uid:                        --- | #
+# | ---                          - page-uid                  --- | #
+# | ---                      gui-uid:                        --- | #
+# | ---                          - page-uid                  --- | #
+# | ---                          - page-uid                  --- | #
+# | ---                          - page-uid                  --- | #
+# | ---                _____________________                 --- | #
+# | ---                                                      --- | #
+####################################################################
+# | ---  |                      root                      |  --- | #
+####################################################################
+# | ---                                                      --- | #
+# | ---  An 'inventory-id' suffixed with the 'root' keyword  --- | #
+# | ---  is interpreted as the 'root-id' of the uix-manager. --- | #
+# | ---  The 'root-id' is referenced in various sections of  --- | #
+# | ---  the manager and is considered the top of the gui    --- | #
+# | ---  hierarchy. There should only ever be one 'root-id'  --- | #
+# | ---  amongst your 'inventory-id'(s) at any given time.   --- | #
+# | ---  If more than one 'inventory-id' is found to contain --- | #
+# | ---  the 'root' keyword, the queue will be cancelled and --- | #
+# | ---  the source will be notified.                        --- | #
+# | ---                                                      --- | #
+####################################################################
+# | ---  |                      gui                       |  --- | #
+####################################################################
+# | ---                                                      --- | #
+# | ---  An 'inventory-id' suffixed with the 'gui' keyword   --- | #
+# | ---  is interpreted as a valid 'gui-id' of the manager.  --- | #
+# | ---  The 'gui-id' is below the 'root-id' and above the   --- | #
+# | ---  'page-id' within the gui hierarchy.                 --- | #
+# | ---                                                      --- | #
+# | ---  There should only be one 'gui-id' per 'gui-file'.   --- | #
+# | ---  The 'gui-id' is interpreted as the root of the      --- | #
+# | ---  containing 'gui-file'. A valid 'gui-id' can store   --- | #
+# | ---  multiple 'page-id'(s) in the form of a list, that   --- | #
+# | ---  descends from the 'gui-id' container.               --- | #
+# | ---                                                      --- | #
+####################################################################
+# | ---  |                      page                      |  --- | #
+####################################################################
+# | ---                                                      --- | #
+# | ---  An 'inventory-id' suffixed with the 'page' keyword  --- | #
+# | ---  is interpreted as a valid 'page-id' of the manager. --- | #
+# | ---  The 'page-id' is below the 'gui-id' and retains the --- | #
+# | ---  lowest position in the gui hierarchy.               --- | #
+# | ---                                                      --- | #
+# | ---  There can be multiple 'page-id'(s) per 'gui-file'.  --- | #
+# | ---  The 'page-id' is interpreted as a descendent of the --- | #
+# | ---  'gui-id' of any given 'gui-file'.                   --- | #
+# | ---                                                      --- | #
+# | ---  A 'page-id' is a descendant of the most recent      --- | #
+# | ---  'gui-id' in the current working 'gui-file', and has --- | #
+# | ---  some special properties applied at the script's     --- | #
+# | ---  runtime. The first unique property of a 'page-id'   --- | #
+# | ---  is the ability to possess 'relatives'. A 'relative' --- | #
+# | ---  is any other 'page-id' that derives from the same   --- | #
+# | ---  'gui-id' of any given 'script-id'.                  --- | #
+# | ---                                                      --- | #
+####################################################################
+
+
