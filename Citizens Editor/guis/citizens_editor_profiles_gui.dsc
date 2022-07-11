@@ -33,7 +33,7 @@ citizens_editor_profile_editor_gui:
     procedural items:
         # |------- procedural data -------| #
         - define root <server.flag[citizens_editor.ast].keys.first>-gui
-        - define gui-id <script.name.replace_text[regex:_|<&sp>].with[-].replace_text[citizens-editor-].with[<empty>]>
+        - define gui-id <script.name.replace_text[citizens_editor_].with[<empty>].replace_text[regex:_|<&sp>].with[-]>
         - define next <player.flag[citizens_editor.gui.next].if_null[<map[<empty>]>]>
         - define profiles-db <server.flag[citizens_editor.profiles].if_null[<map[<empty>]>]>
         # |------- procedural items -------| #
@@ -96,7 +96,7 @@ citizens_editor_profile_page:
 
 
 
-citizens_editor_profiles_gui_handler:
+citizens_editor_profile_editor_gui_handler:
     type: world
     debug: true
     events:
@@ -104,18 +104,16 @@ citizens_editor_profiles_gui_handler:
         # | ---  |       inventory events       |  --- | #
         ##################################################
         on player opens citizens_editor_profile_editor_gui:
-            - ratelimit <player> 1t
             # |------- procedural items -------| #
-            - define last-id <player.flag[citizens_editor.gui.next].last.if_null[<context.inventory.note_name>]>
-            - define fill-item <script[citizens_editor_profile_editor_gui].data_key[definitions].get[center-fill].parsed>
-            - define next-page-item <script[citizens_editor_profile_editor_gui].data_key[definitions].get[next-page].parsed>
+            - define last-id <player.flag[gui_handler.next].last.if_null[<context.inventory.note_name>]>
+            - define fill-item <script[<context.inventory.script.name>].data_key[definitions].get[center-fill].parsed>
+            - define next-page-item <script[<context.inventory.script.name>].data_key[definitions].get[next-page].parsed>
             # |------- check state -------| #
             - if ( <[last-id]> == <context.inventory.note_name> ) && ( <context.inventory.list_contents.contains[<[next-page-item]>]> ):
                 # |------- update inventory slot -------| #
                 - inventory set destination:<context.inventory> origin:<[fill-item]> slot:<context.inventory.find_item[raw_exact:<[next-page-item]>]>
 
         after player left clicks item_flagged:npce-profile in citizens_editor_profile_editor_gui:
-            - ratelimit <player> 1t
             # |------- event data -------| #
             - define prefix <server.flag[citizens_editor.settings.prefixes.main].parse_color>
             - define keywords <server.flag[citizens_editor.settings.editor.dialog-event.cancel-input-keywords]||<list[]>>
@@ -128,13 +126,13 @@ citizens_editor_profiles_gui_handler:
                 - define gui_title "<&8><&l>Edit -<&gt> <[stripped]>"
                 - inject <script.name> path:open_profile
                 # |------- update inventory slot -------| #
-                - define next-page-item <script[citizens_editor_profile_editor_gui].data_key[definitions].get[next-page].parsed>
+                - define next-page-item <script[<context.clicked_inventory.script.name>].data_key[definitions].get[next-page].parsed>
                 - if ( not <context.clicked_inventory.list_contents.contains[<[next-page-item]>]> ):
                     - inventory set destination:<context.clicked_inventory> origin:<[next-page-item]> slot:51
 
         after player left clicks item_flagged:npce-gui-button in citizens_editor_profile_editor_gui:
-            - ratelimit <player> 1t
             # |------- event data -------| #
+            - define script-id <server.flag[citizens_editor.settings.script-id].parse_color.strip_color>
             - define prefix <server.flag[citizens_editor.settings.prefixes.main].parse_color>
             - define keywords <server.flag[citizens_editor.settings.editor.dialog-event.cancel-input-keywords]||<list[]>>
             - define button-id <context.item.flag[npce-gui-button].if_null[null]>
@@ -142,9 +140,11 @@ citizens_editor_profiles_gui_handler:
             # |------- context check -------| #
             - choose <[button-id]>:
                 - case previous-page:
-                    - inject htools_uix_manager path:open_previous
+                    # |------- open previous gui -------| #
+                    - run gui_handler path:open.previous def.script-id:<[script-id]> def.gui-id:<[button-id]> def.prefix:<[prefix]>
                 - case next-page:
-                    - inject htools_uix_manager path:open_next
+                    # |------- open next gui -------| #
+                    - run gui_handler path:open.next def.script-id:<[script-id]> def.gui-id:<[button-id]> def.prefix:<[prefix]>
                 - case create-profile:
                     # |------- check flag -------| #
                     - if not ( <server.has_flag[citizens_editor.profiles]> ):
@@ -155,34 +155,24 @@ citizens_editor_profiles_gui_handler:
                     - define bossbar "<&b><&l>Awaiting Input"
                     - define gui_title "<&8><&l>Create New Profile?"
                     # |------- open input dialog -------| #
-                    - inject htools_dialog_manager path:open_input_dialog
-                    - define gui-id previous-page
-                    # |------- validate dialog -------| #
-                    - if ( <player.flag[citizens_editor.received_dialog].if_null[false]> ):
-                        # |------- dialog data -------| #
-                        - define input <player.flag[citizens_editor.received_input]>
-                        - define dialog <player.flag[citizens_editor.received_dialog]>
-                        # |------- clear dialog data -------| #
-                        - flag <player> citizens_editor.received_dialog:!
-                        # |------- check dialog -------| #
-                        - if ( <[dialog]> ):
-                            # |------- update setting -------| #
-                            - define parsed <[input].parse_color>
-                            - define stripped <[parsed].strip_color>
-                            - define container citizens_editor.profiles
-                            - if not ( <server.flag[<[container]>].contains[<[stripped]>]> ):
-                                - definemap default_profile:
-                                    name: <[input]>
-                                - flag server <[container]>.<[stripped]>:<[default_profile]>
-                                - narrate "<[prefix]> <&f>Profile '<&b><[stripped]><&f>' created."
-                                # |------- validate inventory -------| #
-                                - inject htools_uix_manager path:validate_inventory
-                            - else:
-                                - narrate "<[prefix]> <&c>Profile id '<&f><[stripped]><&c>' already exists."
-                    # |------- open previous inventory -------| #
-                    - inject htools_uix_manager path:open_previous
-                    # |------- clear input data -------| #
-                    - flag <player> citizens_editor.received_input:!
+                    - run <[script-id]>_dialog_gui_handler path:open.input def.script-id:<[script-id]> def.title:<[title]> def.sub_title:<[sub_title]> def.bossbar:<[bossbar]> def.gui_title:<[gui_title]> def.prefix:<[prefix]> save:open_input
+                    - define input <entry[open_input].created_queue.determination.get[1]>
+                    - if ( <[input]> ):
+                        # |------- create profile -------| #
+                        - define parsed <[input].parse_color>
+                        - define stripped <[parsed].strip_color>
+                        - define container citizens_editor.profiles
+                        - if not ( <server.flag[<[container]>].contains[<[stripped]>]> ):
+                            - definemap default_profile:
+                                name: <[input]>
+                            - flag server <[container]>.<[stripped]>:<[default_profile]>
+                            - narrate "<[prefix]> <&f>Profile '<&b><[stripped]><&f>' created."
+                            # |------- validate inventory -------| #
+                            - run gui_handler path:validate.gui def.script-id:<[script-id]> def.gui-id:<[gui-id]> def.prefix:<[prefix]>
+                        - else:
+                            - narrate "<[prefix]> <&c>Profile id '<&f><[stripped]><&c>' already exists."
+                    # |------- open previous gui -------| #
+                    - run gui_handler path:open.previous def.script-id:<[script-id]> def.gui-id:<[gui-id]> def.prefix:<[prefix]>
 
 
 
@@ -191,8 +181,8 @@ citizens_editor_profiles_gui_handler:
 
 
         after player left clicks item_flagged:npce-gui-button in citizens_editor_profile_page:
-            - ratelimit <player> 1t
             # |------- event data -------| #
+            - define script-id <server.flag[citizens_editor.settings.script-id].parse_color.strip_color>
             - define prefix <server.flag[citizens_editor.settings.prefixes.main].parse_color>
             - define keywords <server.flag[citizens_editor.settings.editor.dialog-event.cancel-input-keywords]||<list[]>>
             - define button-id <context.item.flag[npce-gui-button].if_null[null]>
@@ -201,42 +191,34 @@ citizens_editor_profiles_gui_handler:
             # |------- context check -------| #
             - choose <[button-id]>:
                 - case previous-page:
-                    - inject htools_uix_manager path:open_previous
+                    # |------- open previous gui -------| #
+                    - run gui_handler path:open.previous def.script-id:<[script-id]> def.gui-id:<[button-id]> def.prefix:<[prefix]>
                 - case next-page:
-                    - inject htools_uix_manager path:open_next
+                    # |------- open next gui -------| #
+                    - run gui_handler path:open.next def.script-id:<[script-id]> def.gui-id:<[button-id]> def.prefix:<[prefix]>
                 - case delete-profile:
                     # |------- inventory data -------| #
                     - define gui_title "<&8><&l>Delete <[profile-id].parse_color>?"
-                    # |------- open input dialog -------| #
-                    - inject htools_dialog_manager path:open_dialog
-                    # |------- validate dialog -------| #
-                    - if ( <player.flag[citizens_editor.received_dialog].if_null[false]> ):
-                        # |------- dialog data -------| #
-                        - define dialog <player.flag[citizens_editor.received_dialog]>
-                        # |------- clear dialog data -------| #
-                        - flag <player> citizens_editor.received_dialog:!
-                        # |------- check dialog -------| #
-                        - if ( <[dialog]> ):
-                            # |------- parsed data -------| #
-                            - define parsed <[profile-id].parse_color>
-                            - define stripped <[parsed].strip_color>
-                            - define container citizens_editor.profiles.<[stripped]>
-                            # |------- flag check -------| #
-                            - if ( <server.has_flag[<[container]>]> ):
-                                # |------- delete profile-id -------| #
-                                - flag server <[container]>:!
-                                - narrate "<[prefix]> <&c>Profile '<&f><[stripped]><&c>' deleted."
-                                # |------- validate and open previous inventory -------| #
-                                - define gui-id previous-page-2
-                                - inject htools_uix_manager path:validate_inventory
-                                - inject htools_uix_manager path:open_previous
-                                # |------- stop queue -------| #
-                                - stop
-                            - else:
-                                - narrate "<[prefix]> <&c>Profile id '<&f><[stripped]><&c>' doesn't exist."
-                    # |------- open previous inventory -------| #
-                    - define gui-id previous-page
-                    - inject htools_uix_manager path:open_previous
+                    - run <[script-id]>_dialog_gui_handler path:open.dialog def.script-id:<[script-id]> def.gui_title:<[gui_title]> save:open_dialog
+                    - if ( <entry[open_dialog].created_queue.determination.get[1]> ):
+                        # |------- parsed data -------| #
+                        - define parsed <[profile-id].parse_color>
+                        - define stripped <[parsed].strip_color>
+                        - define container citizens_editor.profiles.<[stripped]>
+                        # |------- flag check -------| #
+                        - if ( <server.has_flag[<[container]>]> ):
+                            # |------- delete profile-id -------| #
+                            - flag server <[container]>:!
+                            - narrate "<[prefix]> <&c>Profile '<&f><[stripped]><&c>' deleted."
+                            # |------- validate and open previous inventory -------| #
+                            - run gui_handler path:validate.gui def.script-id:<[script-id]> def.gui-id:previous-page-2 def.prefix:<[prefix]>
+                            - run gui_handler path:open.previous def.script-id:<[script-id]> def.gui-id:previous-page-2 def.prefix:<[prefix]>
+                            # |------- stop queue -------| #
+                            - stop
+                        - else:
+                            - narrate "<[prefix]> <&c>Profile id '<&f><[stripped]><&c>' doesn't exist."
+                    # |------- open previous gui -------| #
+                    - run gui_handler path:open.previous def.script-id:<[script-id]> def.gui-id:previous-page def.prefix:<[prefix]>
                 - case rename-profile:
                     # |------- input data -------| #
                     - define title "<&b><&l>Enter a new ID"
@@ -244,45 +226,33 @@ citizens_editor_profiles_gui_handler:
                     - define bossbar "<&b><&l>Awaiting Input"
                     - define gui_title "<&8><&l>Rename <[profile-id].parse_color.strip_color>?"
                     # |------- open input dialog -------| #
-                    - inject htools_dialog_manager path:open_input_dialog
-                    # |------- validate dialog -------| #
-                    - if ( <player.flag[citizens_editor.received_dialog].if_null[false]> ):
-                        # |------- dialog data -------| #
-                        - define input <player.flag[citizens_editor.received_input]>
-                        - define dialog <player.flag[citizens_editor.received_dialog]>
-                        # |------- clear input data -------| #
-                        - flag <player> citizens_editor.received_input:!
-                        - flag <player> citizens_editor.received_dialog:!
-                        # |------- check dialog -------| #
-                        - if ( <[dialog]> ):
-                            # |------- parsed data -------| #
-                            - define parsed_old <[profile-id].parse_color>
-                            - define stripped_old <[parsed_old].strip_color>
-                            - define parsed_new <[input].parse_color>
-                            - define stripped_new <[parsed_new].strip_color>
-                            - define container citizens_editor.profiles
-                            # |------- flag check -------| #
-                            - if not ( <server.flag[<[container]>].contains[<[stripped_new]>]> ):
-                                # |------- update name -------| #
-                                - flag server <[container]>.<[stripped_old]>.name:<[input]>
-                                - define data <server.flag[<[container]>.<[stripped_old]>]>
-                                # |------- update profile-id -------| #
-                                - flag server <[container]>.<[stripped_old]>:!
-                                - flag server <[container]>.<[stripped_new]>:<[data]>
-                                - narrate "<[prefix]> <&f>Profile '<&b><[stripped_old]><&f>' renamed to '<&b><[stripped_new]><&f>' successfully."
-                                # |------- validate and open previous inventory -------| #
-                                - define gui-id previous-page-2
-                                - inject htools_uix_manager path:validate_inventory
-                                - inject htools_uix_manager path:open_previous
-                                # |------- stop queue -------| #
-                                - stop
-                            - else:
-                                - narrate "<[prefix]> <&c>Rename failed. Profile id '<&f><[stripped_new]><&c>' already exists."
-                    # |------- open previous inventory -------| #
-                    - define gui-id previous-page
-                    - inject htools_uix_manager path:open_previous
-                    # |------- clear input data -------| #
-                    - flag <player> citizens_editor.received_input:!
+                    - run <[script-id]>_dialog_gui_handler path:open.input def.script-id:<[script-id]> def.title:<[title]> def.sub_title:<[sub_title]> def.bossbar:<[bossbar]> def.gui_title:<[gui_title]> def.prefix:<[prefix]> save:open_input
+                    - define input <entry[open_input].created_queue.determination.get[1]>
+                    - if ( <[input]> ):
+                        # |------- parsed data -------| #
+                        - define parsed_old <[profile-id].parse_color>
+                        - define stripped_old <[parsed_old].strip_color>
+                        - define parsed_new <[input].parse_color>
+                        - define stripped_new <[parsed_new].strip_color>
+                        - define container citizens_editor.profiles
+                        # |------- flag check -------| #
+                        - if not ( <server.flag[<[container]>].contains[<[stripped_new]>]> ):
+                            # |------- update name -------| #
+                            - flag server <[container]>.<[stripped_old]>.name:<[input]>
+                            - define data <server.flag[<[container]>.<[stripped_old]>]>
+                            # |------- update profile-id -------| #
+                            - flag server <[container]>.<[stripped_old]>:!
+                            - flag server <[container]>.<[stripped_new]>:<[data]>
+                            - narrate "<[prefix]> <&f>Profile '<&b><[stripped_old]><&f>' renamed to '<&b><[stripped_new]><&f>' successfully."
+                            # |------- validate and open previous inventory -------| #
+                            - run gui_handler path:validate.gui def.script-id:<[script-id]> def.gui-id:previous-page-2 def.prefix:<[prefix]>
+                            - run gui_handler path:open.previous def.script-id:<[script-id]> def.gui-id:previous-page-2 def.prefix:<[prefix]>
+                            # |------- stop queue -------| #
+                            - stop
+                        - else:
+                            - narrate "<[prefix]> <&c>Rename failed. Profile id '<&f><[stripped_new]><&c>' already exists."
+                    # |------- open previous gui -------| #
+                    - run gui_handler path:open.previous def.script-id:<[script-id]> def.gui-id:previous-page def.prefix:<[prefix]>
 
 
 
@@ -298,27 +268,23 @@ citizens_editor_profiles_gui_handler:
         # | ---  Required:  prefix | gui_title       --- | #
 	    # | ---                                      --- | #
         ####################################################
-        - ratelimit <player> 1t
         # |------- inventory data -------| #
-        - if ( <[gui-id].exists> ):
-            - define cached-gui <[gui-id]>
+        - define script-id <server.flag[citizens_editor.settings.script-id].parse_color.strip_color>
         - define gui-id profile-page
-        - inject htools_uix_manager path:validate_inventory
-        - define noted <server.notes[inventories].contains[<inventory[<[gui-id]>].if_null[null]>]>
-        - define flagged <server.flag[citizens_editor.inventories].contains[<[gui-id]>]>
-        - flag <player> citizens_editor.profile:<[profile-id].get[name]>
-        # |------- inventory check -------| #
-        - if ( <[flagged]> ) && ( <[noted]> ):
-            - if ( <[gui_title].exists> ):
-                # |------- adjust inventory -------| #
-                - adjust <inventory[<[gui-id]>]> title:<[gui_title]>
-                # |------- open dialog inventory -------| #
-                - inject htools_uix_manager path:open
-            - else:
-                - narrate "<[prefix]> <&c>task.open_profile <&c>missing required parameter <&f>gui_title<&c>."
-        # |------- reset gui-id -------| #
-        - if ( <[cached-gui].exists> ):
-            - define gui-id <[cached-gui]>
+        - run gui_handler path:validate.gui def.script-id:<[script-id]> def.gui-id:<[gui-id]> def.prefix:<[prefix]> save:validate_profile
+        - if ( <entry[validate_profile].created_queue.determination.get[1]> ):
+            - define noted <server.notes[inventories].contains[<inventory[<[gui-id]>].if_null[null]>]>
+            - define flagged <server.flag[citizens_editor.inventories].contains[<[gui-id]>]>
+            - flag <player> citizens_editor.profile:<[profile-id].get[name]>
+            # |------- inventory check -------| #
+            - if ( <[flagged]> ) && ( <[noted]> ):
+                - if ( <[gui_title].exists> ):
+                    # |------- adjust inventory -------| #
+                    - adjust <inventory[<[gui-id]>]> title:<[gui_title]>
+                    # |------- open dialog inventory -------| #
+                    - run gui_handler path:open.gui def.script-id:<[script-id]> def.gui-id:<[gui-id]> def.prefix:<[prefix]>
+                - else:
+                    - narrate "<[prefix]> <&c>task.open_profile <&c>missing required parameter <&f>gui_title<&c>."
 
 
 
