@@ -1,6 +1,52 @@
-
-
-
+# + ------------------------------------------------------------------------------------------------------------------ +
+# |
+# |  Gui Handler - Denizen Library
+# |
+# + ------------------------------------------------------------------------------------------------------------------ +
+#
+#
+# @Htools               LLC
+# @author               HollowTheSilver
+# @date                 07/11/2022
+# @script-version       DEV-1.0.1
+# @denizen-build-1.2.4  REL-1771
+#
+#
+# ------------------------------------------------------------------------------------------------------------------ +
+#
+#
+# Description:
+# - A denizen library designed to handle multiple graphical user interfaces and manage uix back-end tasks.
+#
+#
+# ------------------------------------------------------------------------------------------------------------------ +
+#
+#
+# Installation:
+# - Upload the 'Gui Handler' folder into your 'scripts' directory and reload denizen with /ex reload.
+#
+# Help:
+# - For library documentation please visit: https://htools/gui-handler/docs (coming soon)
+#
+#
+# ------------------------------------------------------------------------------------------------------------------ +
+#
+#
+# Usage:
+# - A denizen library is a script, or collection of script(s), that is utilized as a local api for any denizen project.
+#
+# Summary:
+# - This library creates a simple snapshot of your denizen script (application), then registers the application with the
+# - gui handler's manager. Once registered, you can utilize the library to create any number of inventory scripts using the
+# - various handler uix tasks. This delegates all back-end logic to the handler, including more complicated processes such
+# - as pagination and hierarchy, rather than requiring the implementation of these design patterns directly.
+#
+# - This library can simultaneously manage multiple graphical user interface applications with a single installation, and is
+# - intended to be a core utility for any denizen script(s) implementing inventory type script containers.
+#
+# - For detailed documentation please visit: https://htools/gui-handler/docs (coming soon)
+#
+#
 # | ----------------------------------------------  GUI HANDLER | APPLICATION  ---------------------------------------------- | #
 
 
