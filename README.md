@@ -1,4 +1,4 @@
 
-# | -------------- Htools Denizen Scripts -------------- | #
+# | -------------- Gui Manager -------------- | #
 
-A collection of Denizen scripts under the Htools umbrella.
+- Placeholder.
