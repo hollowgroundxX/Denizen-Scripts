@@ -1,4 +1,4 @@
 
-# | -------------- Gui Manager Library -------------- | #
+# | -------------- Gui Manager (Library) -------------- | #
 
 - Placeholder.
